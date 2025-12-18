@@ -1,303 +1,1047 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Gruppen Kalender</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jahresplanung</title>
 
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root{
-  --bg:#0f172a;
-  --panel:#111827;
-  --border:rgba(255,255,255,.12);
-  --text:#f8fafc;
-  --muted:#94a3b8;
-  --red:#dc2626;
-  --green:#16a34a;
-  --blue:#2563eb;
+  --bg1:#0b1220; --bg2:#071b1b;
+  --panel: rgba(255,255,255,.06);
+  --panel2: rgba(255,255,255,.04);
+  --border: rgba(255,255,255,.14);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.68);
+  --accent: rgba(96,165,250,.95);
+  --danger: rgba(220,38,38,.85);
+  --ok: rgba(22,163,74,.85);
+  --shadow: 0 20px 60px rgba(0,0,0,.35);
 }
 
-*{box-sizing:border-box}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 body{
   margin:0;
-  font-family:Inter,system-ui;
-  background:linear-gradient(160deg,#0f172a,#020617);
-  color:var(--text);
-  padding:16px;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(96,165,250,.30), transparent 60%),
+    radial-gradient(900px 600px at 85% 25%, rgba(52,211,153,.18), transparent 60%),
+    linear-gradient(140deg,var(--bg1),var(--bg2));
+  padding: 18px;
 }
 
-main{max-width:1100px;margin:auto;display:grid;gap:14px}
+main{ max-width: 1100px; margin: 0 auto; display:grid; gap:14px; }
 
-.tabs{
-  display:flex;gap:8px;flex-wrap:wrap
-}
-.tabs button{
-  background:transparent;
-  color:var(--muted);
-  border:1px solid var(--border);
-  padding:8px 14px;
-  border-radius:999px;
-  cursor:pointer;
-}
-.tabs button.active{
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-}
+h1{ margin:0; font-size: 28px; letter-spacing:-0.02em; }
+.muted{ color: var(--muted); }
+.hidden{ display:none !important; }
 
 .box{
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  backdrop-filter: blur(10px);
 }
 
-.calendar-head{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px
-}
+.row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.grid{ display:grid; gap:10px; }
+.two{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+@media (max-width: 850px){ .two{ grid-template-columns:1fr; } }
 
-.calendar-grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:8px;
+input, textarea, select, button{
+  font: inherit;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 11px 12px;
+  outline: none;
 }
-
-.day{
-  min-height:90px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  padding:6px;
-  cursor:pointer;
-  background:rgba(255,255,255,.03);
-  display:flex;
-  flex-direction:column;
-}
-.day.dim{opacity:.4}
-.day.hasEvent{background:rgba(220,38,38,.18)}
-.day.joined{background:rgba(22,163,74,.25)}
-
-.day span{
-  font-size:12px;
-  font-weight:700;
-}
-
-.hidden{display:none}
-
-input,textarea,button{
-  font:inherit;
-  border-radius:10px;
-  border:1px solid var(--border);
-  padding:10px;
-}
-input,textarea{
-  background:#020617;
-  color:var(--text);
+input, textarea, select{
   width:100%;
+  background: rgba(5,8,15,.55);
+  color: var(--text);
 }
+textarea{ min-height: 110px; resize: vertical; }
+input:focus, textarea:focus, select:focus{
+  border-color: rgba(96,165,250,.55);
+  box-shadow: 0 0 0 4px rgba(96,165,250,.14);
+}
+
 button{
   cursor:pointer;
-  background:var(--blue);
-  color:white;
-  border:none;
+  border:0;
+  color: rgba(255,255,255,.95);
+  background: linear-gradient(135deg, rgba(96,165,250,.95), rgba(168,85,247,.85));
+  padding: 11px 14px;
+  font-weight: 700;
 }
 button.secondary{
-  background:#020617;
-  border:1px solid var(--border);
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border);
+}
+button:disabled{ opacity:.6; cursor:not-allowed; }
+
+.tabs{
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
+  width: fit-content;
+}
+.tab{
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,.80);
+  font-weight: 800;
+}
+.tab.active{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.16);
 }
 
-.modal-bg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
+/* Calendar */
+.calHead{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap;
+}
+.calTitle{
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+.calNav{ display:flex; gap:8px; }
+.navBtn{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.92);
+  font-weight: 900;
+}
+
+.weekdays{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  color: rgba(255,255,255,.70);
+  font-size: 12px;
+  font-weight: 800;
+}
+.calGrid{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.day{
+  min-height: 92px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  padding: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: filter .12s ease, transform .06s ease;
+}
+.day:hover{ filter: brightness(1.05); }
+.day:active{ transform: translateY(1px); }
+.day.dim{ opacity: .40; cursor: default; }
+.dayNum{
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(255,255,255,.9);
+}
+.dayTag{
+  position:absolute;
+  left:8px; right:8px; bottom:8px;
+  height: 10px;
+  border-radius: 999px;
+  opacity: .85;
+}
+.day.hasEvent .dayTag{ background: rgba(220,38,38,.75); }   /* rot */
+.day.joined  .dayTag{ background: rgba(22,163,74,.80); }    /* grün */
+
+@media (max-width: 560px){
+  body{ padding: 12px; }
+  .day{ min-height: 76px; }
+}
+
+/* Modal */
+#modalBg{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.60);
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:50;
+  padding: 14px;
+  z-index: 9999;
 }
-.modal{
-  width:min(500px,100%);
-  background:#020617;
-  border-radius:16px;
-  padding:16px;
-  border:1px solid var(--border);
+#modal{
+  width: min(720px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(10,12,18,.96);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.modalHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.modalTitle{ font-weight: 900; }
+.modalBody{ padding: 14px; }
+.pill{
+  display:inline-flex;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgba(255,255,255,.86);
+}
+.card{
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  border-radius: 14px;
+  padding: 12px;
+}
+hr.sep{
+  border:0;
+  border-top: 1px solid rgba(255,255,255,.10);
+  margin: 12px 0;
 }
 </style>
 </head>
 
 <body>
-
 <main>
 
-<h1>Kalender</h1>
-
-<div class="tabs">
-  <button id="tabCal" class="active">Kalender</button>
-  <button id="tabNew">Termin</button>
-  <button id="tabMembers">Mitglieder</button>
-</div>
-
-<!-- KALENDER -->
-<section id="pageCal" class="box">
-  <div class="calendar-head">
-    <button id="prev">←</button>
-    <strong id="monthLabel"></strong>
-    <button id="next">→</button>
+  <div class="row" style="justify-content:space-between;">
+    <div class="grid" style="gap:6px;">
+      <h1>Kalender</h1>
+      <div class="muted">Rot = Termin vorhanden · Grün = du kommst</div>
+    </div>
+    <div class="row">
+      <span id="whoami" class="muted"></span>
+      <button id="logoutBtn" class="secondary hidden">Logout</button>
+    </div>
   </div>
-  <div class="calendar-grid" id="calendar"></div>
-</section>
 
-<!-- NEUER TERMIN -->
-<section id="pageNew" class="box hidden">
-  <h3>Neuer Termin</h3>
-  <input id="tTitle" placeholder="Titel">
-  <input id="tOrg" placeholder="Organisiert von">
-  <input id="tDate" type="date">
-  <input id="tDays" type="number" min="1" value="1">
-  <input id="tBudget" type="number" placeholder="Budget">
-  <textarea id="tDesc" placeholder="Beschreibung"></textarea>
-  <button id="saveEvent">Speichern</button>
-</section>
+  <!-- LOGIN -->
+  <section id="loginSection" class="box grid">
+    <div style="font-weight:900;">Login</div>
+    <div class="two">
+      <label class="grid" style="gap:6px;">
+        <span class="muted">Email</span>
+        <input id="emailInput" type="email" placeholder="…" autocomplete="username" />
+      </label>
+      <label class="grid" style="gap:6px;">
+        <span class="muted">Passwort</span>
+        <input id="pwInput" type="password" placeholder="…" autocomplete="current-password" />
+      </label>
+    </div>
+    <div class="row">
+      <button id="loginBtn">Einloggen</button>
+      <span id="authStatus" class="muted"></span>
+    </div>
+  </section>
 
-<!-- MITGLIEDER -->
-<section id="pageMembers" class="box hidden">
-  <h3>Mitglieder</h3>
-  <input id="memberName" placeholder="Name">
-  <button id="addMember">Hinzufügen</button>
-  <div id="memberList"></div>
-</section>
+  <!-- APP -->
+  <section id="appSection" class="grid hidden">
 
+    <div class="tabs">
+      <button id="tabCal" class="tab active">Kalender</button>
+      <button id="tabNew" class="tab">Termin</button>
+      <button id="tabMembers" class="tab">Mitglieder</button>
+    </div>
+
+    <!-- CALENDAR PAGE -->
+    <section id="pageCal" class="box grid">
+      <div class="calHead">
+        <div class="calTitle" id="monthLabel">Monat</div>
+        <div class="calNav">
+          <button class="navBtn" id="prevBtn">←</button>
+          <button class="navBtn" id="todayBtn">Heute</button>
+          <button class="navBtn" id="nextBtn">→</button>
+        </div>
+      </div>
+
+      <div class="weekdays">
+        <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+      </div>
+      <div id="calendar" class="calGrid"></div>
+
+      <div id="calStatus" class="muted"></div>
+    </section>
+
+    <!-- NEW EVENT PAGE -->
+    <section id="pageNew" class="box grid hidden">
+      <div style="font-weight:900;">Neuer Termin</div>
+
+      <div class="two">
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Titel</span>
+          <input id="tTitle" placeholder="z.B. Brunch / Trip / …" />
+        </label>
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Organisiert von</span>
+          <input id="tOrg" placeholder="Name" />
+        </label>
+      </div>
+
+      <div class="two">
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Startdatum</span>
+          <input id="tDate" type="date" />
+        </label>
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Anzahl Tage</span>
+          <input id="tDays" type="number" min="1" value="1" />
+        </label>
+      </div>
+
+      <div class="two">
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Budget (optional)</span>
+          <input id="tBudget" type="number" min="0" step="1" placeholder="z.B. 50" />
+        </label>
+        <label class="grid" style="gap:6px;">
+          <span class="muted">Typ</span>
+          <select id="tType">
+            <option value="day">Tag</option>
+            <option value="weekend">Wochenende</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="grid" style="gap:6px;">
+        <span class="muted">Beschreibung</span>
+        <textarea id="tDesc" placeholder="Was machen wir? Wo? Was ist wichtig?"></textarea>
+      </label>
+
+      <div class="row">
+        <button id="saveEventBtn">Speichern</button>
+        <span id="newStatus" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- MEMBERS PAGE -->
+    <section id="pageMembers" class="box grid hidden">
+      <div style="font-weight:900;">Mitglieder</div>
+
+      <div class="row">
+        <input id="memberName" placeholder="Name hinzufügen" style="flex:1; min-width:220px;" />
+        <button id="addMemberBtn">Hinzufügen</button>
+        <span id="memStatus" class="muted"></span>
+      </div>
+
+      <div id="memberList" class="grid"></div>
+      <div class="muted" style="font-size:13px;">
+        Tipp: Dein Name für Zusagen wird einmal gespeichert (du kannst ihn im Modal ändern).
+      </div>
+    </section>
+
+  </section>
 </main>
 
 <!-- MODAL -->
-<div id="modalBg" class="modal-bg hidden">
-  <div class="modal" id="modal"></div>
+<div id="modalBg" class="hidden">
+  <div id="modal">
+    <div class="modalHead">
+      <div class="modalTitle" id="modalTitle">Titel</div>
+      <button id="closeModalBtn" class="secondary">Schließen</button>
+    </div>
+    <div class="modalBody" id="modalBody"></div>
+  </div>
 </div>
 
 <script type="module">
-const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
+  // ====== SET THESE TWO ======
+  const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
 
-const headers = () => ({
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: "Bearer " + SUPABASE_ANON_KEY,
-  "Content-Type":"application/json"
-});
+  const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
+  const LS_SESSION = "sb_session_calendar_fix_v1";
+  const LS_NAME = "my_member_name_v2";
 
-let events=[], rsvps=[], members=[];
-let myName = localStorage.getItem("myName")||"";
+  let session = null;
+  let myName = localStorage.getItem(LS_NAME) || "";
 
-const qs=o=>new URLSearchParams(o).toString();
-const sb = async (t,q)=>fetch(`${SUPABASE_URL}/rest/v1/${t}?${qs(q)}`,{headers:headers()}).then(r=>r.json());
-const sbPost = async (t,d)=>fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:"POST",headers:headers(),body:JSON.stringify(d)});
+  // UI
+  const loginSection = document.getElementById("loginSection");
+  const appSection = document.getElementById("appSection");
+  const emailInput = document.getElementById("emailInput");
+  const pwInput = document.getElementById("pwInput");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const authStatus = document.getElementById("authStatus");
+  const whoami = document.getElementById("whoami");
 
-const cal=document.getElementById("calendar");
-const monthLabel=document.getElementById("monthLabel");
-let view=new Date(); view.setDate(1);
+  const tabCal = document.getElementById("tabCal");
+  const tabNew = document.getElementById("tabNew");
+  const tabMembers = document.getElementById("tabMembers");
+  const pageCal = document.getElementById("pageCal");
+  const pageNew = document.getElementById("pageNew");
+  const pageMembers = document.getElementById("pageMembers");
 
-function iso(d){return d.toISOString().slice(0,10)}
+  const monthLabel = document.getElementById("monthLabel");
+  const calendarEl = document.getElementById("calendar");
+  const calStatus = document.getElementById("calStatus");
 
-async function loadAll(){
-  events=await sb("events",{select:"*"});
-  rsvps=await sb("rsvps",{select:"*"});
-  members=await sb("participants",{select:"*"});
-  render();
-}
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const todayBtn = document.getElementById("todayBtn");
 
-function render(){
-  cal.innerHTML="";
-  const y=view.getFullYear(),m=view.getMonth();
-  monthLabel.textContent=view.toLocaleString("de",{month:"long",year:"numeric"});
-  const first=new Date(y,m,1);
-  const start=(first.getDay()+6)%7;
-  for(let i=0;i<42;i++){
-    const d=new Date(y,m,1-start+i);
-    const key=iso(d);
-    const ev=events.find(e=>key>=e.date&&key<=(e.end_date||e.date));
-    const joined=!!rsvps.find(r=>r.member_name===myName&&r.status==="yes"&&r.event_id===ev?.id);
-    const el=document.createElement("div");
-    el.className="day"+(d.getMonth()!=m?" dim":"")+(ev?" hasEvent":"")+(joined?" joined":"");
-    el.innerHTML=`<span>${d.getDate()}</span>`;
-    el.onclick=()=>ev&&openEvent(ev);
-    cal.appendChild(el);
+  const tTitle = document.getElementById("tTitle");
+  const tOrg = document.getElementById("tOrg");
+  const tDate = document.getElementById("tDate");
+  const tDays = document.getElementById("tDays");
+  const tBudget = document.getElementById("tBudget");
+  const tDesc = document.getElementById("tDesc");
+  const tType = document.getElementById("tType");
+  const saveEventBtn = document.getElementById("saveEventBtn");
+  const newStatus = document.getElementById("newStatus");
+
+  const memberName = document.getElementById("memberName");
+  const addMemberBtn = document.getElementById("addMemberBtn");
+  const memStatus = document.getElementById("memStatus");
+  const memberList = document.getElementById("memberList");
+
+  const modalBg = document.getElementById("modalBg");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalBody = document.getElementById("modalBody");
+  const closeModalBtn = document.getElementById("closeModalBtn");
+
+  // Data
+  let events = [];
+  let rsvps = [];
+  let members = [];
+
+  // Calendar view month
+  let view = new Date();
+  view.setDate(1);
+
+  function escapeHtml(s){
+    return (s ?? "").toString().replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
   }
-}
 
-function openEvent(ev){
-  if(!myName){
-    myName=prompt("Wie ist dein Name?");
-    if(!myName)return;
-    localStorage.setItem("myName",myName);
+  function saveSession(s){ session = s; localStorage.setItem(LS_SESSION, JSON.stringify(s)); }
+  function loadSession(){ try{ const raw = localStorage.getItem(LS_SESSION); if(raw) session = JSON.parse(raw); }catch{} }
+  function clearSession(){ session=null; localStorage.removeItem(LS_SESSION); }
+
+  function setAuthed(on, email=""){
+    loginSection.classList.toggle("hidden", on);
+    appSection.classList.toggle("hidden", !on);
+    logoutBtn.classList.toggle("hidden", !on);
+    whoami.textContent = on && email ? `Eingeloggt: ${email}` : "";
   }
-  const mine=rsvps.find(r=>r.event_id===ev.id&&r.member_name===myName);
-  if(!mine){
-    showModal(`
-      <h3>${ev.title}</h3>
-      <button onclick="vote('${ev.id}','yes')">Ich komme</button>
-      <button onclick="vote('${ev.id}','no')" class="secondary">Ich komme nicht</button>
+
+  function setPage(which){
+    const isCal = which==="cal";
+    const isNew = which==="new";
+    const isMem = which==="mem";
+    tabCal.classList.toggle("active", isCal);
+    tabNew.classList.toggle("active", isNew);
+    tabMembers.classList.toggle("active", isMem);
+    pageCal.classList.toggle("hidden", !isCal);
+    pageNew.classList.toggle("hidden", !isNew);
+    pageMembers.classList.toggle("hidden", !isMem);
+  }
+
+  // Auth (password)
+  async function signInWithPassword(email, password){
+    const r = await fetch(`${AUTH_URL}/token?grant_type=password`,{
+      method:"POST",
+      headers:{ "apikey": SUPABASE_ANON_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    const data = JSON.parse(txt);
+    const now = Math.floor(Date.now()/1000);
+    saveSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: now + data.expires_in
+    });
+  }
+
+  async function refreshIfNeeded(){
+    if(!session?.access_token || !session?.refresh_token || !session?.expires_at) return;
+    const now = Math.floor(Date.now()/1000);
+    if(session.expires_at - now > 60) return;
+
+    const r = await fetch(`${AUTH_URL}/token?grant_type=refresh_token`,{
+      method:"POST",
+      headers:{ "apikey": SUPABASE_ANON_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    const data = JSON.parse(txt);
+    saveSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: now + data.expires_in
+    });
+  }
+
+  async function fetchUserEmail(){
+    const r = await fetch(`${AUTH_URL}/user`,{
+      headers:{
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization":"Bearer " + session.access_token
+      }
+    });
+    if(!r.ok) return "";
+    const u = await r.json();
+    return u?.email || "";
+  }
+
+  // Supabase REST helpers
+  const restHeaders = () => ({
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": "Bearer " + (session?.access_token || ""),
+    "Content-Type":"application/json"
+  });
+
+  function qs(obj){
+    const p = new URLSearchParams();
+    for(const [k,v] of Object.entries(obj)) p.set(k,v);
+    return p.toString();
+  }
+
+  async function sbSelect(table, queryObj){
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${qs(queryObj)}`;
+    const r = await fetch(url, { headers: restHeaders() });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    return JSON.parse(txt);
+  }
+
+  async function sbInsert(table, rows){
+    const url = `${SUPABASE_URL}/rest/v1/${table}`;
+    const r = await fetch(url, { method:"POST", headers: restHeaders(), body: JSON.stringify(rows) });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    return true;
+  }
+
+  async function sbUpsert(table, rows, onConflict){
+    const url = `${SUPABASE_URL}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`;
+    const r = await fetch(url, {
+      method:"POST",
+      headers: { ...restHeaders(), "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify(rows)
+    });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    return true;
+  }
+
+  async function sbDelete(table, filterQueryString){
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${filterQueryString}`;
+    const r = await fetch(url, { method:"DELETE", headers: restHeaders() });
+    const txt = await r.text();
+    if(!r.ok) throw new Error(txt);
+    return true;
+  }
+
+  // Date helpers
+  const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  function isoDate(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+  function addDays(dateStr, n){
+    const d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate()+n);
+    return isoDate(d);
+  }
+
+  // ICS export
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function icsEscape(text){
+    return (text || "")
+      .replaceAll("\\", "\\\\")
+      .replaceAll("\n", "\\n")
+      .replaceAll(",", "\\,")
+      .replaceAll(";", "\\;");
+  }
+  function downloadIcs(ev){
+    const title = ev.title || "Termin";
+    const start = ev.date;
+    const endInc = ev.end_date || ev.date;
+    const endExc = addDays(endInc, 1); // ICS end is exclusive for all-day
+
+    const now = new Date();
+    const dtStamp =
+      now.getUTCFullYear() +
+      pad2(now.getUTCMonth()+1) +
+      pad2(now.getUTCDate()) + "T" +
+      pad2(now.getUTCHours()) +
+      pad2(now.getUTCMinutes()) +
+      pad2(now.getUTCSeconds()) + "Z";
+
+    const descParts = [];
+    if(ev.organizer) descParts.push(`Organisiert von: ${ev.organizer}`);
+    if(ev.budget != null && ev.budget !== "") descParts.push(`Budget: ${ev.budget}`);
+    if(ev.description) descParts.push(ev.description);
+    const description = descParts.join("\n");
+
+    const ics =
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Jahresplanung//DE
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:${icsEscape(ev.id + "@jahresplanung")}
+DTSTAMP:${dtStamp}
+SUMMARY:${icsEscape(title)}
+DTSTART;VALUE=DATE:${start.replaceAll("-","")}
+DTEND;VALUE=DATE:${endExc.replaceAll("-","")}
+DESCRIPTION:${icsEscape(description)}
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([ics], { type:"text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safe = title.replace(/[^a-z0-9\-_]+/gi,"_").slice(0,40) || "termin";
+    a.download = `${safe}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Modal
+  function openModal(title, html){
+    modalTitle.textContent = title;
+    modalBody.innerHTML = html;
+    modalBg.classList.remove("hidden");
+  }
+  function closeModal(){
+    modalBg.classList.add("hidden");
+    modalBody.innerHTML = "";
+  }
+  closeModalBtn.addEventListener("click", closeModal);
+  modalBg.addEventListener("click", (e)=>{ if(e.target === modalBg) closeModal(); });
+  window.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && !modalBg.classList.contains("hidden")) closeModal(); });
+
+  // Data load
+  async function loadAll(){
+    calStatus.textContent = "Lade…";
+    try{
+      events = await sbSelect("events", { select:"*", order:"date.asc" });
+      rsvps = await sbSelect("rsvps", { select:"*", order:"updated_at.desc" });
+      members = await sbSelect("participants", { select:"*", order:"created_at.asc" });
+      renderMembers();
+      renderCalendar();
+      calStatus.textContent = "";
+    }catch(e){
+      calStatus.innerHTML = `<span style="color: rgba(255,120,120,.95)">Fehler: ${escapeHtml(e.message)}</span>`;
+    }
+  }
+
+  // Members UI
+  function renderMembers(){
+    memberList.innerHTML = members.map(m => `
+      <div class="card" style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+        <div style="font-weight:900;">${escapeHtml(m.name)}</div>
+        <button class="secondary" data-delmem="${escapeHtml(m.id)}">Löschen</button>
+      </div>
+    `).join("") || `<div class="muted">Noch keine Mitglieder.</div>`;
+
+    memberList.querySelectorAll("[data-delmem]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const id = btn.getAttribute("data-delmem");
+        if(!confirm("Mitglied löschen?")) return;
+        try{
+          await sbDelete("participants", `id=eq.${encodeURIComponent(id)}`);
+          await loadAll();
+        }catch(e){ alert(e.message); }
+      });
+    });
+  }
+
+  addMemberBtn.addEventListener("click", async ()=>{
+    const n = (memberName.value || "").trim();
+    if(!n) return;
+    addMemberBtn.disabled = true;
+    memStatus.textContent = "Speichere…";
+    try{
+      await sbInsert("participants", [{ name:n }]);
+      memberName.value = "";
+      memStatus.textContent = "";
+      await loadAll();
+    }catch(e){
+      memStatus.textContent = "Fehler";
+      alert(e.message);
+    }finally{
+      addMemberBtn.disabled = false;
+    }
+  });
+
+  // Calendar render + logic
+  function eventForDay(dateStr){
+    return events.find(ev => dateStr >= ev.date && dateStr <= (ev.end_date || ev.date)) || null;
+  }
+  function myJoinStatusForEvent(eventId){
+    if(!myName) return null;
+    const row = rsvps.find(r => r.event_id === eventId && r.member_name === myName);
+    return row?.status || null;
+  }
+
+  function renderCalendar(){
+    const y = view.getFullYear();
+    const m = view.getMonth();
+    monthLabel.textContent = `${monthNames[m]} ${y}`;
+
+    const first = new Date(y, m, 1);
+    const firstDowMon0 = (first.getDay()+6)%7; // Mon=0
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const prevMonthLast = new Date(y, m, 0).getDate();
+    const prevDays = firstDowMon0;
+
+    const cells = [];
+    for(let i=0;i<42;i++){
+      let cellDate, dim=false;
+      if(i < prevDays){
+        const dnum = prevMonthLast - prevDays + 1 + i;
+        cellDate = new Date(y, m-1, dnum);
+        dim=true;
+      }else if(i >= prevDays + daysInMonth){
+        const dnum = i - (prevDays + daysInMonth) + 1;
+        cellDate = new Date(y, m+1, dnum);
+        dim=true;
+      }else{
+        cellDate = new Date(y, m, (i - prevDays + 1));
+      }
+
+      const key = isoDate(cellDate);
+      const ev = eventForDay(key);
+      const hasEvent = !!ev;
+      const joined = hasEvent && (myJoinStatusForEvent(ev.id) === "yes");
+
+      cells.push(`
+        <div class="day ${dim ? "dim":""} ${hasEvent ? "hasEvent":""} ${joined ? "joined":""}"
+             data-date="${key}" data-eid="${ev ? escapeHtml(ev.id):""}">
+          <div class="dayNum">${cellDate.getDate()}</div>
+          <div class="dayTag"></div>
+        </div>
+      `);
+    }
+
+    calendarEl.innerHTML = cells.join("");
+
+    calendarEl.querySelectorAll(".day").forEach(cell=>{
+      const dim = cell.classList.contains("dim");
+      const eid = cell.getAttribute("data-eid");
+      const dateStr = cell.getAttribute("data-date");
+      cell.addEventListener("click", ()=>{
+        if(dim) return;
+        if(!eid){
+          // optional: could open create dialog, but you wanted only react on event days
+          return;
+        }
+        const ev = events.find(e => e.id === eid);
+        if(ev) openEventFlow(ev, dateStr);
+      });
+    });
+  }
+
+  async function ensureName(){
+    if(myName && myName.trim()) return myName.trim();
+
+    // nicer than prompt: modal name picker
+    const options = members.map(m => `<option value="${escapeHtml(m.name)}"></option>`).join("");
+    openModal("Dein Name", `
+      <div class="grid">
+        <div class="muted">Bitte Name eingeben (wird gespeichert).</div>
+        <input id="nameInput" list="nameList" placeholder="Dein Name…" />
+        <datalist id="nameList">${options}</datalist>
+        <div class="row">
+          <button id="saveNameBtn">Speichern</button>
+          <button class="secondary" id="cancelNameBtn">Abbrechen</button>
+        </div>
+      </div>
     `);
-  }else{
-    const list=rsvps.filter(r=>r.event_id===ev.id&&r.status==="yes").map(r=>r.member_name).join(", ");
-    showModal(`
-      <h3>${ev.title}</h3>
-      <p>${ev.description||""}</p>
-      <p><strong>Dabei:</strong> ${list||"–"}</p>
-      <button onclick="addToCal('${ev.id}')">In Kalender</button>
-      <button onclick="delEvent('${ev.id}')" class="secondary">Löschen</button>
+
+    return new Promise((resolve)=>{
+      document.getElementById("cancelNameBtn").onclick = ()=>{ closeModal(); resolve(""); };
+      document.getElementById("saveNameBtn").onclick = ()=>{
+        const v = (document.getElementById("nameInput").value || "").trim();
+        if(!v) return;
+        myName = v;
+        localStorage.setItem(LS_NAME, myName);
+        closeModal();
+        resolve(myName);
+        // refresh calendar colors immediately
+        renderCalendar();
+      };
+    });
+  }
+
+  async function openEventFlow(ev){
+    const name = await ensureName();
+    if(!name) return;
+
+    const myStatus = myJoinStatusForEvent(ev.id);
+
+    if(!myStatus){
+      // Voting screen
+      openModal(ev.title || "Termin", `
+        <div class="grid">
+          <div class="muted">
+            ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
+            ${ev.organizer ? " · " + escapeHtml(ev.organizer) : ""}
+            ${ev.budget != null && ev.budget !== "" ? " · Budget: " + escapeHtml(ev.budget) : ""}
+          </div>
+
+          <div class="card">
+            <div style="font-weight:900;">Abstimmen</div>
+            <div class="muted" style="margin-top:6px;">Name: <span class="pill">${escapeHtml(name)}</span></div>
+            <div class="row" style="margin-top:10px;">
+              <button id="voteYesBtn">Ich komme</button>
+              <button id="voteNoBtn" class="secondary">Ich komme nicht</button>
+              <button id="changeNameBtn" class="secondary">Name ändern</button>
+            </div>
+          </div>
+        </div>
+      `);
+
+      document.getElementById("changeNameBtn").onclick = async ()=>{
+        myName = "";
+        localStorage.removeItem(LS_NAME);
+        closeModal();
+        await openEventFlow(ev);
+      };
+
+      document.getElementById("voteYesBtn").onclick = async ()=>{ await vote(ev.id, name, "yes"); };
+      document.getElementById("voteNoBtn").onclick  = async ()=>{ await vote(ev.id, name, "no"); };
+      return;
+    }
+
+    // Details screen
+    const yesList = rsvps.filter(r => r.event_id === ev.id && r.status === "yes").map(r=>r.member_name);
+    const noList  = rsvps.filter(r => r.event_id === ev.id && r.status === "no").map(r=>r.member_name);
+
+    openModal(ev.title || "Termin", `
+      <div class="grid">
+        <div class="muted">
+          ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
+          ${ev.organizer ? " · " + escapeHtml(ev.organizer) : ""}
+          ${ev.budget != null && ev.budget !== "" ? " · Budget: " + escapeHtml(ev.budget) : ""}
+        </div>
+
+        <div class="card">
+          <div style="font-weight:900;">Beschreibung</div>
+          <div class="muted" style="margin-top:6px; line-height:1.45;">
+            ${ev.description ? escapeHtml(ev.description) : "—"}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between; align-items:flex-start;">
+            <div class="grid" style="gap:6px;">
+              <div style="font-weight:900;">Zusagen</div>
+              <div class="muted">Dein Status: <span class="pill">${myStatus === "yes" ? "Ich komme" : "Ich komme nicht"}</span></div>
+            </div>
+            <button class="secondary" id="changeVoteBtn">Umentscheiden</button>
+          </div>
+
+          <hr class="sep" />
+
+          <div class="grid" style="gap:8px;">
+            <div><span class="pill">Dabei (${yesList.length})</span></div>
+            <div class="muted" style="line-height:1.5;">${yesList.length ? escapeHtml(yesList.join(", ")) : "—"}</div>
+
+            <div style="margin-top:6px;"><span class="pill">Nicht dabei (${noList.length})</span></div>
+            <div class="muted" style="line-height:1.5;">${noList.length ? escapeHtml(noList.join(", ")) : "—"}</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="secondary" id="icsBtn">In Kalender speichern</button>
+          <button class="secondary" id="changeNameBtn2">Name ändern</button>
+          <button id="deleteBtn" style="background: rgba(220,38,38,.85);">Termin löschen</button>
+        </div>
+      </div>
     `);
+
+    document.getElementById("icsBtn").onclick = ()=> downloadIcs(ev);
+
+    document.getElementById("changeNameBtn2").onclick = async ()=>{
+      myName = "";
+      localStorage.removeItem(LS_NAME);
+      closeModal();
+      await openEventFlow(ev);
+    };
+
+    document.getElementById("changeVoteBtn").onclick = async ()=>{
+      closeModal();
+      // remove existing RSVP for this user then reopen vote screen
+      try{
+        await sbDelete("rsvps", `event_id=eq.${encodeURIComponent(ev.id)}&member_name=eq.${encodeURIComponent(myName)}`);
+        await loadAll();
+        await openEventFlow(ev);
+      }catch(e){ alert(e.message); }
+    };
+
+    document.getElementById("deleteBtn").onclick = async ()=>{
+      if(!confirm("Termin wirklich löschen?")) return;
+      try{
+        // delete RSVPs first (safe even if FK cascade exists)
+        await sbDelete("rsvps", `event_id=eq.${encodeURIComponent(ev.id)}`);
+        await sbDelete("events", `id=eq.${encodeURIComponent(ev.id)}`);
+        closeModal();
+        await loadAll();
+      }catch(e){
+        alert(e.message);
+      }
+    };
   }
-}
 
-window.vote=async(id,status)=>{
-  await sbPost("rsvps",[{
-    event_id:id,
-    member_name:myName,
-    status
-  }]);
-  closeModal(); loadAll();
-};
+  async function vote(eventId, name, status){
+    try{
+      // upsert: unique(event_id, member_name) recommended in DB
+      await sbUpsert("rsvps", [{
+        event_id: eventId,
+        member_name: name,
+        status,
+        updated_at: new Date().toISOString()
+      }], "event_id,member_name");
 
-window.delEvent=async(id)=>{
-  if(confirm("Termin löschen?")){
-    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`,{method:"DELETE",headers:headers()});
-    closeModal(); loadAll();
+      closeModal();
+      await loadAll();
+      // after voting, calendar re-renders and day becomes green if yes
+    }catch(e){
+      alert(e.message);
+    }
   }
-};
 
-function showModal(html){
-  document.getElementById("modal").innerHTML=html;
-  document.getElementById("modalBg").classList.remove("hidden");
-}
-function closeModal(){document.getElementById("modalBg").classList.add("hidden")}
+  // New event
+  saveEventBtn.addEventListener("click", async ()=>{
+    const title = (tTitle.value||"").trim();
+    const org = (tOrg.value||"").trim();
+    const date = tDate.value;
+    const days = Math.max(1, parseInt(tDays.value||"1",10));
+    if(!title || !date){
+      alert("Bitte mindestens Titel und Startdatum ausfüllen.");
+      return;
+    }
+    const end = addDays(date, days-1);
+    const budget = (tBudget.value||"").trim();
+    const desc = (tDesc.value||"").trim();
+    const type = tType.value;
 
-document.getElementById("modalBg").onclick=e=>e.target.id==="modalBg"&&closeModal();
+    saveEventBtn.disabled = true;
+    newStatus.textContent = "Speichere…";
+    try{
+      await sbInsert("events", [{
+        title,
+        organizer: org || null,
+        date,
+        end_date: end,
+        budget: budget === "" ? null : Number(budget),
+        description: desc || null,
+        type
+      }]);
 
-document.getElementById("prev").onclick=()=>{view.setMonth(view.getMonth()-1);render()};
-document.getElementById("next").onclick=()=>{view.setMonth(view.getMonth()+1);render()};
+      tTitle.value=""; tOrg.value=""; tDate.value=""; tDays.value="1"; tBudget.value=""; tDesc.value="";
+      newStatus.textContent = "";
+      setPage("cal");
+      await loadAll();
+    }catch(e){
+      newStatus.textContent = "Fehler";
+      alert(e.message);
+    }finally{
+      saveEventBtn.disabled = false;
+    }
+  });
 
-document.getElementById("saveEvent").onclick=async()=>{
-  const d=tDate.value;
-  const end=new Date(d); end.setDate(end.getDate()+(+tDays.value-1));
-  await sbPost("events",[{
-    title:tTitle.value,
-    organizer:tOrg.value,
-    date:d,
-    end_date:iso(end),
-    budget:tBudget.value||null,
-    description:tDesc.value
-  }]);
-  loadAll();
-};
+  // Tabs
+  tabCal.addEventListener("click", ()=> setPage("cal"));
+  tabNew.addEventListener("click", ()=> setPage("new"));
+  tabMembers.addEventListener("click", ()=> setPage("mem"));
 
-document.getElementById("addMember").onclick=async()=>{
-  await sbPost("participants",[{name:memberName.value}]);
-  loadAll();
-};
+  // Month navigation
+  prevBtn.addEventListener("click", ()=>{ view = new Date(view.getFullYear(), view.getMonth()-1, 1); renderCalendar(); });
+  nextBtn.addEventListener("click", ()=>{ view = new Date(view.getFullYear(), view.getMonth()+1, 1); renderCalendar(); });
+  todayBtn.addEventListener("click", ()=>{
+    const t = new Date();
+    view = new Date(t.getFullYear(), t.getMonth(), 1);
+    renderCalendar();
+  });
 
-tabCal.onclick=()=>{pageCal.classList.remove("hidden");pageNew.classList.add("hidden");pageMembers.classList.add("hidden")}
-tabNew.onclick=()=>{pageNew.classList.remove("hidden");pageCal.classList.add("hidden");pageMembers.classList.add("hidden")}
-tabMembers.onclick=()=>{pageMembers.classList.remove("hidden");pageCal.classList.add("hidden");pageNew.classList.add("hidden")}
+  // Login / Logout
+  loginBtn.addEventListener("click", async ()=>{
+    const email = (emailInput.value||"").trim();
+    const pw = pwInput.value||"";
+    if(!email || !pw) return;
 
-loadAll();
+    loginBtn.disabled = true;
+    authStatus.textContent = "Login…";
+    try{
+      await signInWithPassword(email, pw);
+      await refreshIfNeeded();
+      const em = await fetchUserEmail();
+      setAuthed(true, em || email);
+      setPage("cal");
+      await loadAll();
+      authStatus.textContent = "";
+    }catch(e){
+      clearSession();
+      setAuthed(false);
+      authStatus.textContent = "Login fehlgeschlagen";
+      alert(e.message);
+    }finally{
+      loginBtn.disabled = false;
+    }
+  });
+
+  logoutBtn.addEventListener("click", ()=>{
+    clearSession();
+    setAuthed(false);
+  });
+
+  // Init
+  (async ()=>{
+    loadSession();
+    if(!session?.access_token){
+      setAuthed(false);
+      return;
+    }
+    try{
+      await refreshIfNeeded();
+      const em = await fetchUserEmail();
+      setAuthed(true, em);
+      setPage("cal");
+      await loadAll();
+    }catch{
+      clearSession();
+      setAuthed(false);
+    }
+  })();
 </script>
 </body>
 </html>
