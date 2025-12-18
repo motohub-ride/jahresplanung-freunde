@@ -148,6 +148,29 @@
 
 <body>
   <main class="grid">
+    <div id="authBox" class="box grid">
+  <h2>Login</h2>
+  <div class="two">
+    <label class="grid">
+      <span>Email</span>
+      <input id="emailInput" type="email" placeholder="freunde@login.ch" />
+    </label>
+    <label class="grid">
+      <span>Passwort</span>
+      <input id="pwInput" type="password" placeholder="••••••••" />
+    </label>
+  </div>
+  <div class="row">
+    <button id="loginBtn">Einloggen</button>
+    <button id="logoutBtn" class="secondary" style="display:none;">Logout</button>
+    <span id="authStatus" class="muted"></span>
+  </div>
+</div>
+
+<div id="app" class="grid" style="display:none;">
+  <!-- HIER kommt dein bisheriger Inhalt rein -->
+</div>
+
     <header>
       <h1>Jahresplanung</h1>
       <div class="sub">Live-Liste für Teilnehmer & Termine. Link teilen und gemeinsam planen.</div>
@@ -222,11 +245,51 @@
     const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
 
-    const headers = () => ({
+const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
+
+let session = null;
+
+function saveSession(s) {
+  session = s;
+  localStorage.setItem("sb_session", JSON.stringify(s));
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem("sb_session");
+    if (raw) session = JSON.parse(raw);
+  } catch {}
+}
+
+async function refreshIfNeeded() {
+  if (!session?.access_token || !session?.expires_at || !session?.refresh_token) return;
+  const now = Math.floor(Date.now() / 1000);
+  if (session.expires_at - now > 60) return;
+
+  const r = await fetch(`${AUTH_URL}/token?grant_type=refresh_token`, {
+    method: "POST",
+    headers: {
       "apikey": SUPABASE_ANON_KEY,
-      "Authorization": "Bearer " + SUPABASE_ANON_KEY,
       "Content-Type": "application/json",
-    });
+    },
+    body: JSON.stringify({ refresh_token: session.refresh_token }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const data = await r.json();
+  saveSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: now + data.expires_in,
+    token_type: data.token_type,
+  });
+}
+
+const headers = () => ({
+  "apikey": SUPABASE_ANON_KEY,
+  "Authorization": "Bearer " + (session?.access_token || SUPABASE_ANON_KEY),
+  "Content-Type": "application/json",
+});
+
 
     function qs(obj) {
       const s = new URLSearchParams();
@@ -277,55 +340,72 @@
     }
 
     async function loadParticipants() {
-      pStatusEl.textContent = "Lade…";
-      try {
-        const rows = await sbSelect("participants", { select:"*", order:"created_at.asc" });
-        participantsEl.innerHTML = rows.map(r => `<span class="pill">${escapeHtml(r.name)}</span>`).join("");
-        pStatusEl.textContent = rows.length ? "" : "Noch niemand eingetragen.";
-      } catch (e) {
-        pStatusEl.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
-      }
-    }
+     // --- Auth UI wiring ---
+const authBox = document.getElementById("authBox");
+const app = document.getElementById("app");
+const emailInput = document.getElementById("emailInput");
+const pwInput = document.getElementById("pwInput");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const authStatus = document.getElementById("authStatus");
 
-    async function loadEvents() {
-      eventsEmptyEl.textContent = "Lade…";
-      try {
-        const rows = await sbSelect("events", { select:"*", order:"date.asc" });
-        if (!rows.length) {
-          eventsEl.innerHTML = "";
-          eventsEmptyEl.textContent = "Noch keine Termine eingetragen.";
-          return;
-        }
-        eventsEmptyEl.textContent = "";
-        eventsEl.innerHTML = rows.map(ev => `
-          <div class="card">
-            <div class="row" style="justify-content:space-between;">
-              <div>
-                <div><b>${escapeHtml(ev.date)}</b> • ${ev.type === "weekend" ? "Wochenende" : "Tag"}</div>
-                <div class="muted">${ev.title ? escapeHtml(ev.title) : "ohne Titel"}</div>
-                <div class="muted" style="margin-top:6px;">
-                  ${ev.planner_a || ev.planner_b ? `Planer: ${escapeHtml(ev.planner_a ?? "?")} & ${escapeHtml(ev.planner_b ?? "?")}` : "Planer noch offen"}
-                </div>
-                ${ev.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(ev.notes)}</div>` : ""}
-              </div>
-              <button class="secondary" data-del="${escapeHtml(ev.id)}">Löschen</button>
-            </div>
-          </div>
-        `).join("");
+function setAuthed(isAuthed) {
+  app.style.display = isAuthed ? "grid" : "none";
+  logoutBtn.style.display = isAuthed ? "inline-flex" : "none";
+  loginBtn.style.display = isAuthed ? "none" : "inline-flex";
+  authStatus.textContent = isAuthed ? "Eingeloggt" : "Bitte einloggen";
+}
 
-        eventsEl.querySelectorAll("button[data-del]").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const id = btn.getAttribute("data-del");
-            if (!id) return;
-            if (!confirm("Diesen Termin wirklich löschen?")) return;
-            try {
-              await sbDelete("events", { id: "eq." + id });
-              await loadEvents();
-            } catch (e) {
-              alert(e.message);
-            }
-          });
-        });
+async function signIn(email, password) {
+  const r = await fetch(`${AUTH_URL}/token?grant_type=password`, {
+    method: "POST",
+    headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const data = await r.json();
+  const now = Math.floor(Date.now() / 1000);
+  saveSession({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: now + data.expires_in,
+    token_type: data.token_type,
+  });
+}
+
+function signOut() {
+  session = null;
+  localStorage.removeItem("sb_session");
+}
+
+loginBtn.addEventListener("click", async () => {
+  try {
+    authStatus.textContent = "Login…";
+    await signIn(emailInput.value.trim(), pwInput.value);
+    setAuthed(true);
+    await loadParticipants();
+    await loadEvents();
+  } catch (e) {
+    authStatus.textContent = "Login fehlgeschlagen";
+    alert(e.message);
+  }
+});
+
+logoutBtn.addEventListener("click", () => {
+  signOut();
+  setAuthed(false);
+});
+
+// Init
+loadSession();
+setAuthed(!!session?.access_token);
+
+(async () => {
+  if (!session?.access_token) return;
+  await refreshIfNeeded();
+  await loadParticipants();
+  await loadEvents();
+})();
 
       } catch (e) {
         eventsEmptyEl.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
@@ -377,8 +457,7 @@
       }
     });
 
-    loadParticipants();
-    loadEvents();
+
   </script>
 </body>
 </html>
