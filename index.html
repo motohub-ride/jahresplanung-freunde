@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Jahresplanung Freunde</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
@@ -37,9 +38,10 @@
     }
 
     main{ max-width:1100px; margin:0 auto; display:grid; gap:16px; }
+
     header{ padding:18px 18px 6px; }
     h1{ margin:0; font-size:34px; letter-spacing:-0.02em; line-height:1.1; }
-    .sub{ margin-top:10px; color:var(--muted); max-width:80ch; line-height:1.5; }
+    .sub{ margin-top:10px; color:var(--muted); max-width:90ch; line-height:1.5; }
 
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .grid{ display:grid; gap:14px; }
@@ -111,11 +113,11 @@
       border:1px solid var(--border);
       box-shadow:none;
     }
+
     .muted{ color:var(--muted); }
     .danger{ color:var(--danger); }
     .hidden{ display:none !important; }
 
-    /* Nav tabs */
     .tabs{
       display:flex; gap:10px; flex-wrap:wrap;
       padding:10px; border:1px solid var(--border);
@@ -129,7 +131,7 @@
       background:transparent;
       color:rgba(255,255,255,.85);
       cursor:pointer;
-      font-weight:600;
+      font-weight:700;
     }
     .tab.active{
       background:rgba(255,255,255,.10);
@@ -143,7 +145,7 @@
       margin-bottom:8px;
     }
     .calTitle{
-      font-size:18px; font-weight:700; letter-spacing:-0.01em;
+      font-size:18px; font-weight:800; letter-spacing:-0.01em;
     }
     .calNav{ display:flex; gap:8px; align-items:center; }
     .calBtn{
@@ -152,14 +154,14 @@
       background:rgba(255,255,255,.08);
       color:rgba(255,255,255,.9);
       cursor:pointer;
-      font-weight:700;
+      font-weight:800;
     }
 
     .weekdayRow{
       display:grid; grid-template-columns:repeat(7,1fr);
       gap:10px; margin-bottom:10px;
       color:rgba(255,255,255,.75);
-      font-size:13px; font-weight:600;
+      font-size:13px; font-weight:700;
     }
 
     .calendarGrid{
@@ -177,12 +179,17 @@
       padding:10px;
       position:relative;
       overflow:hidden;
+      cursor:pointer;
+      transition: transform .06s ease, filter .12s ease;
     }
+    .dayCell:hover{ filter: brightness(1.05); }
+    .dayCell:active{ transform: translateY(1px); }
+
     .dayCell.dim{ opacity:.45; }
     .dayNum{
       position:absolute;
       top:10px; left:10px;
-      font-weight:700;
+      font-weight:800;
       color:rgba(255,255,255,.88);
       font-size:13px;
     }
@@ -203,6 +210,30 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.86);
+      font-size:14px;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius2);
+      padding:14px;
+      background:rgba(255,255,255,.06);
+      box-shadow:var(--shadow2);
+    }
+
+    @media (max-width:560px){
+      .calendarGrid{ gap:8px; }
+      .weekdayRow{ gap:8px; }
+      .dayCell{ min-height:92px; padding:9px; border-radius:14px; }
+      .chip{ font-size:11px; padding:5px 9px; }
+    }
   </style>
 </head>
 
@@ -210,11 +241,11 @@
   <main class="grid">
     <header>
       <h1>Jahresplanung</h1>
-      <div class="sub">Home zeigt den großen Monatskalender. Neue Termine trägst du auf der zweiten Seite ein.</div>
+      <div class="sub">Kalender auf Home. Klick auf einen Tag öffnet Details. Auf “Neuer Termin” legst du Events an. Unter “Mitglieder” verwaltest du Namen für Zusagen.</div>
 
       <div class="row" style="padding-top:10px; justify-content:space-between;">
         <div class="row">
-          <div class="badge"><span class="dot"></span> Live · Supabase</div>
+          <div class="badge"><span class="dot"></span> Live</div>
           <span id="whoami" class="muted"></span>
         </div>
         <div class="row">
@@ -226,6 +257,7 @@
         <div class="tabs">
           <button id="tabHome" class="tab active">Home</button>
           <button id="tabNew" class="tab">Neuer Termin</button>
+          <button id="tabMembers" class="tab">Mitglieder</button>
         </div>
       </div>
     </header>
@@ -252,7 +284,7 @@
     <!-- APP -->
     <section id="appSection" class="grid hidden">
 
-      <!-- HOME: CALENDAR -->
+      <!-- HOME -->
       <section id="pageHome" class="box grid">
         <div class="calHead">
           <div class="calTitle" id="calTitle">Monat</div>
@@ -271,7 +303,7 @@
         <div id="homeStatus" class="muted"></div>
       </section>
 
-      <!-- NEW EVENT PAGE -->
+      <!-- NEW EVENT -->
       <section id="pageNew" class="box grid hidden">
         <h2>Termin eintragen</h2>
 
@@ -312,27 +344,66 @@
         </div>
 
         <label class="grid">
-          <span class="muted">Beschreibung (kurz)</span>
+          <span class="muted">Beschreibung</span>
           <textarea id="descInput" style="min-height:110px;" placeholder="Was machen wir? Wo? Was muss man mitbringen?"></textarea>
         </label>
 
         <div class="row">
           <button id="saveEventBtn">Speichern</button>
-          <button id="goHomeBtn" class="secondary">Zurück zum Kalender</button>
+          <button id="goHomeBtn" class="secondary">Zurück</button>
           <span id="saveStatus" class="muted"></span>
+        </div>
+      </section>
+
+      <!-- MEMBERS -->
+      <section id="pageMembers" class="box grid hidden">
+        <h2>Mitglieder</h2>
+
+        <div class="row">
+          <input id="memberNameInput" placeholder="Name hinzufügen" style="flex:1; min-width:220px;" />
+          <button id="addMemberBtn">Hinzufügen</button>
+          <span id="membersStatus" class="muted"></span>
+        </div>
+
+        <div id="membersList" class="row"></div>
+
+        <div class="muted" style="font-size:13px;">
+          Diese Namen werden bei jedem Termin für “Dabei / Vielleicht / Nein” angezeigt.
         </div>
       </section>
 
     </section>
   </main>
 
+  <!-- MODAL -->
+  <div id="modalBackdrop" class="hidden" style="
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:16px; z-index:9999;">
+    <div id="modal" style="
+      width:min(920px, 100%);
+      margin-top:16px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:18px;
+      background:rgba(15,18,26,.92);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      overflow:hidden;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.12);">
+        <div id="modalTitle" style="font-weight:900; letter-spacing:-.01em;"></div>
+        <button id="closeModalBtn" class="secondary">Schließen</button>
+      </div>
+      <div id="modalBody" style="padding:16px;"></div>
+    </div>
+  </div>
+
   <script type="module">
-    // HIER EINTRAGEN:
+    // ====== SET THESE TWO ======
     const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
 
     const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
-    const LS_KEY = "sb_session_v2";
+    const LS_KEY = "sb_session_calendar_v1";
     let session = null;
 
     function saveSession(s){ session = s; localStorage.setItem(LS_KEY, JSON.stringify(s)); }
@@ -345,7 +416,7 @@
       }[c]));
     }
 
-    // UI
+    // UI refs
     const loginSection = document.getElementById("loginSection");
     const appSection = document.getElementById("appSection");
     const emailInput = document.getElementById("emailInput");
@@ -357,8 +428,10 @@
 
     const tabHome = document.getElementById("tabHome");
     const tabNew = document.getElementById("tabNew");
+    const tabMembers = document.getElementById("tabMembers");
     const pageHome = document.getElementById("pageHome");
     const pageNew = document.getElementById("pageNew");
+    const pageMembers = document.getElementById("pageMembers");
 
     const calTitle = document.getElementById("calTitle");
     const calendarGrid = document.getElementById("calendarGrid");
@@ -378,6 +451,16 @@
     const goHomeBtn = document.getElementById("goHomeBtn");
     const saveStatus = document.getElementById("saveStatus");
 
+    const memberNameInput = document.getElementById("memberNameInput");
+    const addMemberBtn = document.getElementById("addMemberBtn");
+    const membersStatus = document.getElementById("membersStatus");
+    const membersList = document.getElementById("membersList");
+
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody = document.getElementById("modalBody");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
     function setAuthed(isAuthed, email=""){
       loginSection.classList.toggle("hidden", isAuthed);
       appSection.classList.toggle("hidden", !isAuthed);
@@ -388,11 +471,31 @@
 
     function setPage(which){
       const isHome = which === "home";
+      const isNew = which === "new";
+      const isMembers = which === "members";
+
       tabHome.classList.toggle("active", isHome);
-      tabNew.classList.toggle("active", !isHome);
+      tabNew.classList.toggle("active", isNew);
+      tabMembers.classList.toggle("active", isMembers);
+
       pageHome.classList.toggle("hidden", !isHome);
-      pageNew.classList.toggle("hidden", isHome);
+      pageNew.classList.toggle("hidden", !isNew);
+      pageMembers.classList.toggle("hidden", !isMembers);
     }
+
+    // Modal
+    function openModal(title, html){
+      modalTitle.textContent = title;
+      modalBody.innerHTML = html;
+      modalBackdrop.classList.remove("hidden");
+    }
+    function closeModal(){
+      modalBackdrop.classList.add("hidden");
+      modalBody.innerHTML = "";
+    }
+    closeModalBtn.addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", (e) => { if(e.target === modalBackdrop) closeModal(); });
+    window.addEventListener("keydown", (e) => { if(e.key === "Escape" && !modalBackdrop.classList.contains("hidden")) closeModal(); });
 
     // Auth
     async function signInWithPassword(email, password){
@@ -437,10 +540,7 @@
     async function fetchUserEmail(){
       if(!session?.access_token) return "";
       const r = await fetch(`${AUTH_URL}/user`, {
-        headers:{
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + session.access_token
-        }
+        headers:{ "apikey": SUPABASE_ANON_KEY, "Authorization":"Bearer " + session.access_token }
       });
       if(!r.ok) return "";
       const u = await r.json();
@@ -476,12 +576,52 @@
       return true;
     }
 
-    // Calendar logic
-    let view = new Date();
-    view.setDate(1);
+    async function sbUpsert(table, rows, onConflictCols){
+      const url = `${SUPABASE_URL}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflictCols)}`;
+      const r = await fetch(url, {
+        method:"POST",
+        headers: { ...headers(), "Prefer":"resolution=merge-duplicates" },
+        body: JSON.stringify(rows)
+      });
+      const txt = await r.text();
+      if(!r.ok) throw new Error(txt);
+      return true;
+    }
 
+    // Data caches
+    let allEvents = [];
+    let members = [];
+
+    async function loadMembers(){
+      membersStatus.textContent = "Lade…";
+      try{
+        members = await sbSelect("participants", { select:"*", order:"created_at.asc" });
+        membersList.innerHTML = members.map(m => `<span class="pill">${escapeHtml(m.name)}</span>`).join("");
+        membersStatus.textContent = members.length ? "" : "Noch keine Mitglieder.";
+      }catch(e){
+        membersStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
+      }
+    }
+
+    addMemberBtn.addEventListener("click", async () => {
+      const n = memberNameInput.value.trim();
+      if(!n) return;
+      addMemberBtn.disabled = true;
+      membersStatus.textContent = "Speichere…";
+      try{
+        await sbInsert("participants", [{ name: n }]);
+        memberNameInput.value = "";
+        await loadMembers();
+      }catch(e){
+        membersStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
+      }finally{
+        addMemberBtn.disabled = false;
+      }
+    });
+
+    // Calendar helpers
+    let view = new Date(); view.setDate(1);
     const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-    let allEvents = []; // cached
 
     function isoDate(d){
       const y = d.getFullYear();
@@ -489,85 +629,27 @@
       const day = String(d.getDate()).padStart(2,"0");
       return `${y}-${m}-${day}`;
     }
+    function addDays(dateObj, n){ const d = new Date(dateObj); d.setDate(d.getDate()+n); return d; }
 
-    function addDays(dateObj, n){
-      const d = new Date(dateObj);
-      d.setDate(d.getDate()+n);
-      return d;
-    }
-
-    // Build a map: YYYY-MM-DD -> array of chips
     function buildEventIndex(events){
       const idx = new Map();
       for(const ev of events){
-        const start = ev.date; // YYYY-MM-DD
+        const start = ev.date;
         const end = ev.end_date || ev.date;
-        // iterate days inclusive
         let cur = new Date(start + "T00:00:00");
         const last = new Date(end + "T00:00:00");
         while(cur <= last){
           const key = isoDate(cur);
           if(!idx.has(key)) idx.set(key, []);
-          const label = ev.title || "Termin";
-          idx.get(key).push({ title: label, organizer: ev.organizer || "" });
+          idx.get(key).push({
+            id: ev.id,
+            title: ev.title || "Termin",
+            organizer: ev.organizer || ""
+          });
           cur = addDays(cur, 1);
         }
       }
       return idx;
-    }
-
-    function renderCalendar(){
-      const y = view.getFullYear();
-      const m = view.getMonth();
-
-      calTitle.textContent = `${monthNames[m]} ${y}`;
-
-      // Monday-based: JS getDay(): Sun=0..Sat=6, convert to Mon=0..Sun=6
-      const first = new Date(y, m, 1);
-      const firstDowMon0 = (first.getDay() + 6) % 7;
-      const daysInMonth = new Date(y, m+1, 0).getDate();
-
-      // prev month days to show
-      const prevDays = firstDowMon0;
-      const prevMonthLast = new Date(y, m, 0).getDate();
-
-      const idx = buildEventIndex(allEvents);
-
-      const cells = [];
-      // 6 rows * 7 = 42 cells
-      for(let i=0;i<42;i++){
-        let cellDate, dim = false;
-        if(i < prevDays){
-          const dayNum = prevMonthLast - prevDays + 1 + i;
-          cellDate = new Date(y, m-1, dayNum);
-          dim = true;
-        } else if(i >= prevDays + daysInMonth){
-          const dayNum = i - (prevDays + daysInMonth) + 1;
-          cellDate = new Date(y, m+1, dayNum);
-          dim = true;
-        } else {
-          const dayNum = i - prevDays + 1;
-          cellDate = new Date(y, m, dayNum);
-        }
-
-        const key = isoDate(cellDate);
-        const chips = (idx.get(key) || [])
-          .slice(0,3)
-          .map(c => `<div class="chip">${escapeHtml(c.title)}${c.organizer ? " · " + escapeHtml(c.organizer) : ""}</div>`)
-          .join("");
-
-        const moreCount = Math.max(0, (idx.get(key)?.length || 0) - 3);
-        const more = moreCount ? `<div class="chip">+${moreCount} mehr</div>` : "";
-
-        cells.push(`
-          <div class="dayCell ${dim ? "dim" : ""}">
-            <div class="dayNum">${cellDate.getDate()}</div>
-            <div class="chips">${chips}${more}</div>
-          </div>
-        `);
-      }
-
-      calendarGrid.innerHTML = cells.join("");
     }
 
     async function loadEventsForCalendar(){
@@ -581,7 +663,177 @@
       }
     }
 
-    // Event creation
+    function renderCalendar(){
+      const y = view.getFullYear();
+      const m = view.getMonth();
+      calTitle.textContent = `${monthNames[m]} ${y}`;
+
+      const first = new Date(y, m, 1);
+      const firstDowMon0 = (first.getDay() + 6) % 7; // Mon=0
+      const daysInMonth = new Date(y, m+1, 0).getDate();
+      const prevDays = firstDowMon0;
+      const prevMonthLast = new Date(y, m, 0).getDate();
+
+      const idx = buildEventIndex(allEvents);
+
+      const cells = [];
+      for(let i=0;i<42;i++){
+        let cellDate, dim=false;
+
+        if(i < prevDays){
+          const dayNum = prevMonthLast - prevDays + 1 + i;
+          cellDate = new Date(y, m-1, dayNum);
+          dim=true;
+        } else if(i >= prevDays + daysInMonth){
+          const dayNum = i - (prevDays + daysInMonth) + 1;
+          cellDate = new Date(y, m+1, dayNum);
+          dim=true;
+        } else {
+          const dayNum = i - prevDays + 1;
+          cellDate = new Date(y, m, dayNum);
+        }
+
+        const key = isoDate(cellDate);
+        const items = idx.get(key) || [];
+        const chips = items.slice(0,3).map(c =>
+          `<div class="chip">${escapeHtml(c.title)}${c.organizer ? " · " + escapeHtml(c.organizer) : ""}</div>`
+        ).join("");
+        const moreCount = Math.max(0, items.length - 3);
+        const more = moreCount ? `<div class="chip">+${moreCount} mehr</div>` : "";
+
+        cells.push(`
+          <div class="dayCell ${dim ? "dim" : ""}" data-date="${key}">
+            <div class="dayNum">${cellDate.getDate()}</div>
+            <div class="chips">${chips}${more}</div>
+          </div>
+        `);
+      }
+
+      calendarGrid.innerHTML = cells.join("");
+
+      // click + double click
+      calendarGrid.querySelectorAll(".dayCell").forEach(cell => {
+        const handler = async () => {
+          const dateStr = cell.getAttribute("data-date");
+          if(dateStr) await openDayOverlay(dateStr);
+        };
+        cell.addEventListener("click", handler);
+        cell.addEventListener("dblclick", handler);
+      });
+    }
+
+    function statusLabel(s){
+      if(s === "yes") return "Dabei";
+      if(s === "maybe") return "Vielleicht";
+      return "Nein";
+    }
+
+    async function loadRsvps(eventId){
+      return await sbSelect("rsvps", { select:"*", event_id: "eq." + eventId });
+    }
+
+    async function openDayOverlay(dateStr){
+      const todays = allEvents.filter(ev => {
+        const start = ev.date;
+        const end = ev.end_date || ev.date;
+        return dateStr >= start && dateStr <= end;
+      });
+
+      if(!todays.length){
+        openModal(dateStr, `<div class="muted">Keine Termine an diesem Tag.</div>`);
+        return;
+      }
+
+      const list = todays.map(ev => `
+        <div class="card" style="margin-bottom:10px; cursor:pointer;" data-ev="${escapeHtml(ev.id)}">
+          <div style="font-weight:900;">${escapeHtml(ev.title || "Termin")}</div>
+          <div class="muted" style="margin-top:4px;">
+            ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
+            ${ev.organizer ? " · " + escapeHtml(ev.organizer) : ""}
+            ${ev.budget != null ? " · Budget: " + escapeHtml(ev.budget) : ""}
+          </div>
+        </div>
+      `).join("");
+
+      openModal(dateStr, `<div>${list}</div><div class="muted" style="font-size:13px;">Tippe einen Termin an für Details & Zusagen.</div>`);
+
+      modalBody.querySelectorAll("[data-ev]").forEach(el => {
+        el.addEventListener("click", async () => {
+          const id = el.getAttribute("data-ev");
+          const ev = allEvents.find(x => x.id === id);
+          if(ev) await openEventOverlay(ev);
+        });
+      });
+    }
+
+    async function openEventOverlay(ev){
+      // Members for RSVP
+      if(!members.length) await loadMembers();
+
+      const rsvps = await loadRsvps(ev.id);
+      const rsvpMap = new Map(rsvps.map(r => [r.member_name, r.status]));
+
+      const counts = { yes:0, maybe:0, no:0 };
+      rsvps.forEach(r => { if(counts[r.status] != null) counts[r.status]++; });
+
+      const header = `
+        <div class="muted" style="margin-bottom:10px;">
+          ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
+          ${ev.organizer ? " · organisiert von " + escapeHtml(ev.organizer) : ""}
+          ${ev.budget != null ? " · Budget: " + escapeHtml(ev.budget) : ""}
+        </div>
+        ${ev.description ? `<div style="margin-bottom:14px; line-height:1.5;">${escapeHtml(ev.description)}</div>`
+                        : `<div class="muted" style="margin-bottom:14px;">Keine Beschreibung.</div>`}
+        <div class="row" style="margin-bottom:10px;">
+          <span class="pill">Dabei: ${counts.yes}</span>
+          <span class="pill">Vielleicht: ${counts.maybe}</span>
+          <span class="pill">Nein: ${counts.no}</span>
+        </div>
+      `;
+
+      const list = members.map(m => {
+        const name = m.name;
+        const s = rsvpMap.get(name);
+        const current = s ? statusLabel(s) : "Offen";
+        return `
+          <div class="card" style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px;">
+            <div style="min-width:140px;">
+              <div style="font-weight:900;">${escapeHtml(name)}</div>
+              <div class="muted" style="font-size:13px;">Status: ${escapeHtml(current)}</div>
+            </div>
+            <div class="row" style="gap:8px;">
+              <button class="secondary" data-rsvp="yes" data-name="${escapeHtml(name)}">Dabei</button>
+              <button class="secondary" data-rsvp="maybe" data-name="${escapeHtml(name)}">Vielleicht</button>
+              <button class="secondary" data-rsvp="no" data-name="${escapeHtml(name)}">Nein</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      openModal(ev.title || "Termin", header + `<h3 style="margin:10px 0 8px 0; font-size:14px;">Zusagen</h3>` + list);
+
+      modalBody.querySelectorAll("[data-rsvp]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const status = btn.getAttribute("data-rsvp");
+          const name = btn.getAttribute("data-name");
+          try{
+            await sbUpsert("rsvps", [{
+              event_id: ev.id,
+              member_name: name,
+              status,
+              updated_at: new Date().toISOString()
+            }], "event_id,member_name");
+
+            // refresh overlay counts
+            await openEventOverlay(ev);
+          }catch(e){
+            alert(e.message);
+          }
+        });
+      });
+    }
+
+    // Create event
     function clampInt(n, fallback){
       const x = parseInt(n, 10);
       return Number.isFinite(x) && x > 0 ? x : fallback;
@@ -611,13 +863,9 @@
           organizer,
           budget,
           description,
-          type,
-          planner_a: null,
-          planner_b: null,
-          notes: null
+          type
         }]);
 
-        // reset
         titleInput.value = "";
         organizerInput.value = "";
         startInput.value = "";
@@ -636,9 +884,10 @@
       }
     });
 
-    // Nav
+    // Tabs + nav
     tabHome.addEventListener("click", () => setPage("home"));
     tabNew.addEventListener("click", () => setPage("new"));
+    tabMembers.addEventListener("click", async () => { setPage("members"); await loadMembers(); });
     goHomeBtn.addEventListener("click", () => setPage("home"));
 
     prevMonth.addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth()-1, 1); renderCalendar(); });
@@ -653,13 +902,17 @@
 
       loginBtn.disabled = true;
       authStatus.textContent = "Login…";
+
       try{
         await signInWithPassword(email, pw);
         await refreshIfNeeded();
         const e = await fetchUserEmail();
         setAuthed(true, e || email);
+
         setPage("home");
+        await loadMembers();
         await loadEventsForCalendar();
+
         authStatus.textContent = "";
       }catch(err){
         authStatus.textContent = "Login fehlgeschlagen";
@@ -674,6 +927,7 @@
     logoutBtn.addEventListener("click", () => {
       clearSession();
       setAuthed(false);
+      setPage("home");
     });
 
     // Init
@@ -681,13 +935,16 @@
       loadSession();
       if(!session?.access_token){
         setAuthed(false);
+        setPage("home");
         return;
       }
+
       try{
         await refreshIfNeeded();
         const e = await fetchUserEmail();
         setAuthed(true, e);
         setPage("home");
+        await loadMembers();
         await loadEventsForCalendar();
       }catch{
         clearSession();
