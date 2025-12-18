@@ -1,1268 +1,303 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Jahresplanung Freunde</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<title>Gruppen Kalender</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-    :root{
-      --bg1:#0b1220; --bg2:#0a2a2a;
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.70);
-      --border:rgba(255,255,255,.16);
-      --shadow:0 20px 60px rgba(0,0,0,.35);
-      --shadow2:0 10px 30px rgba(0,0,0,.25);
-      --radius:18px; --radius2:14px;
-      --danger:#ff7b7b;
-      --chipbg: rgba(255,255,255,.08);
-      --chipbd: rgba(255,255,255,.16);
-      --accent1: rgba(96,165,250,.95);
-      --accent2: rgba(168,85,247,.85);
-    }
+:root{
+  --bg:#0f172a;
+  --panel:#111827;
+  --border:rgba(255,255,255,.12);
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --red:#dc2626;
+  --green:#16a34a;
+  --blue:#2563eb;
+}
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(900px 500px at 15% 10%, rgba(96,165,250,.30), transparent 60%),
-        radial-gradient(800px 520px at 85% 20%, rgba(52,211,153,.24), transparent 55%),
-        radial-gradient(900px 700px at 50% 90%, rgba(168,85,247,.18), transparent 60%),
-        linear-gradient(140deg,var(--bg1),var(--bg2));
-      padding:28px 18px 50px;
-    }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui;
+  background:linear-gradient(160deg,#0f172a,#020617);
+  color:var(--text);
+  padding:16px;
+}
 
-    main{ max-width:1100px; margin:0 auto; display:grid; gap:16px; }
+main{max-width:1100px;margin:auto;display:grid;gap:14px}
 
-    header{ padding:18px 18px 6px; }
-    h1{ margin:0; font-size:34px; letter-spacing:-0.02em; line-height:1.1; }
-    .sub{ margin-top:10px; color:var(--muted); max-width:90ch; line-height:1.5; }
+.tabs{
+  display:flex;gap:8px;flex-wrap:wrap
+}
+.tabs button{
+  background:transparent;
+  color:var(--muted);
+  border:1px solid var(--border);
+  padding:8px 14px;
+  border-radius:999px;
+  cursor:pointer;
+}
+.tabs button.active{
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+}
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .grid{ display:grid; gap:14px; }
-    .two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    @media (max-width:900px){ .two{ grid-template-columns:1fr; } h1{ font-size:30px; } }
+.box{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
 
-    .box{
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      box-shadow:var(--shadow);
-      padding:16px;
-      backdrop-filter:blur(10px);
-    }
-    .box h2{ margin:0 0 10px 0; font-size:16px; letter-spacing:-0.01em; }
+.calendar-head{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px
+}
 
-    .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 12px; border-radius:999px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.06);
-      box-shadow:var(--shadow2);
-      color:var(--muted);
-      font-size:13px;
-    }
-    .dot{
-      width:9px; height:9px; border-radius:999px;
-      background:rgba(52,211,153,.9);
-      box-shadow:0 0 0 4px rgba(52,211,153,.14);
-    }
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
 
-    input,select,textarea,button{
-      font:inherit;
-      border-radius:12px;
-      border:1px solid var(--border);
-      padding:11px 12px;
-      outline:none;
-    }
-    input,select,textarea{
-      width:100%;
-      color:var(--text);
-      background:rgba(10,12,18,.35);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
-    }
-    input::placeholder,textarea::placeholder{ color:rgba(255,255,255,.45); }
-    input:focus,select:focus,textarea:focus{
-      border-color:rgba(96,165,250,.55);
-      box-shadow:0 0 0 4px rgba(96,165,250,.15);
-    }
+.day{
+  min-height:90px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  padding:6px;
+  cursor:pointer;
+  background:rgba(255,255,255,.03);
+  display:flex;
+  flex-direction:column;
+}
+.day.dim{opacity:.4}
+.day.hasEvent{background:rgba(220,38,38,.18)}
+.day.joined{background:rgba(22,163,74,.25)}
 
-    button{
-      width:fit-content;
-      cursor:pointer;
-      color:rgba(255,255,255,.95);
-      border:0;
-      background:linear-gradient(135deg, var(--accent1), var(--accent2));
-      box-shadow:0 12px 28px rgba(96,165,250,.18);
-      transition:transform .08s ease, filter .12s ease;
-      padding:11px 14px;
-      font-weight:600;
-    }
-    button:hover{ filter:brightness(1.05); }
-    button:active{ transform:translateY(1px); }
-    button:disabled{ opacity:.6; cursor:not-allowed; }
+.day span{
+  font-size:12px;
+  font-weight:700;
+}
 
-    button.secondary{
-      background:rgba(255,255,255,.08);
-      color:rgba(255,255,255,.88);
-      border:1px solid var(--border);
-      box-shadow:none;
-    }
+.hidden{display:none}
 
-    .muted{ color:var(--muted); }
-    .danger{ color:var(--danger); }
-    .hidden{ display:none !important; }
+input,textarea,button{
+  font:inherit;
+  border-radius:10px;
+  border:1px solid var(--border);
+  padding:10px;
+}
+input,textarea{
+  background:#020617;
+  color:var(--text);
+  width:100%;
+}
+button{
+  cursor:pointer;
+  background:var(--blue);
+  color:white;
+  border:none;
+}
+button.secondary{
+  background:#020617;
+  border:1px solid var(--border);
+}
 
-    .tabs{
-      display:flex; gap:10px; flex-wrap:wrap;
-      padding:10px; border:1px solid var(--border);
-      border-radius:999px; background:rgba(255,255,255,.06);
-      width: fit-content;
-    }
-    .tab{
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid transparent;
-      background:transparent;
-      color:rgba(255,255,255,.85);
-      cursor:pointer;
-      font-weight:700;
-    }
-    .tab.active{
-      background:rgba(255,255,255,.10);
-      border-color:rgba(255,255,255,.18);
-    }
-
-    /* Calendar */
-    .calHead{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-      margin-bottom:8px;
-    }
-    .calTitle{
-      font-size:18px; font-weight:800; letter-spacing:-0.01em;
-    }
-    .calNav{ display:flex; gap:8px; align-items:center; }
-    .calBtn{
-      padding:9px 11px; border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.08);
-      color:rgba(255,255,255,.9);
-      cursor:pointer;
-      font-weight:800;
-    }
-
-    .weekdayRow{
-      display:grid; grid-template-columns:repeat(7,1fr);
-      gap:10px; margin-bottom:10px;
-      color:rgba(255,255,255,.75);
-      font-size:13px; font-weight:700;
-    }
-
-    .calendarGrid{
-      display:grid;
-      grid-template-columns:repeat(7, 1fr);
-      gap:10px;
-    }
-
-    .dayCell{
-      min-height:120px;
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:rgba(255,255,255,.05);
-      box-shadow:var(--shadow2);
-      padding:10px;
-      position:relative;
-      overflow:hidden;
-      cursor:pointer;
-      transition: transform .06s ease, filter .12s ease;
-    }
-    .dayCell:hover{ filter: brightness(1.05); }
-    .dayCell:active{ transform: translateY(1px); }
-
-    .dayCell.dim{ opacity:.45; }
-    .dayNum{
-      position:absolute;
-      top:10px; left:10px;
-      font-weight:800;
-      color:rgba(255,255,255,.88);
-      font-size:13px;
-    }
-    .chips{
-      margin-top:24px;
-      display:grid;
-      gap:6px;
-    }
-    .chip{
-      border:1px solid var(--chipbd);
-      background:var(--chipbg);
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;
-      line-height:1.2;
-      color:rgba(255,255,255,.88);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:7px 10px; border-radius:999px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.06);
-      color:rgba(255,255,255,.86);
-      font-size:14px;
-    }
-
-    .card{
-      border:1px solid var(--border);
-      border-radius:var(--radius2);
-      padding:14px;
-      background:rgba(255,255,255,.06);
-      box-shadow:var(--shadow2);
-    }
-
-    @media (max-width:560px){
-      .calendarGrid{ gap:8px; }
-      .weekdayRow{ gap:8px; }
-      .dayCell{ min-height:92px; padding:9px; border-radius:14px; }
-      .chip{ font-size:11px; padding:5px 9px; }
-    }
-
-    /* Notify dock (desktop) */
-    #notifyDock{
-      position: fixed;
-      left: 18px;
-      top: 170px;
-      width: 320px;
-      max-height: calc(100vh - 220px);
-      overflow: auto;
-      z-index: 20;
-      display: grid;
-      gap: 10px;
-    }
-    @media (max-width: 1100px){
-      #notifyDock{ left: 12px; width: 300px; }
-    }
-    @media (max-width: 900px){
-      #notifyDock{ display:none; }
-    }
-
-    /* Mobile: hide grid calendar + show agenda */
-    #mobileAgenda{ display:none; }
-    @media (max-width: 700px){
-      .calendarGrid, .weekdayRow{ display:none; }
-      #mobileAgenda{ display:grid; gap:12px; }
-    }
-
-    /* Mobile notify sheet */
-    #mobileNotify{ display:none; }
-    @media (max-width: 900px){
-      #mobileNotify{ display:block; }
-    }
-  </style>
+.modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+}
+.modal{
+  width:min(500px,100%);
+  background:#020617;
+  border-radius:16px;
+  padding:16px;
+  border:1px solid var(--border);
+}
+</style>
 </head>
 
 <body>
-  <!-- Notifications (desktop dock) -->
-  <div id="notifyDock"></div>
 
-  <main class="grid">
-    <header>
-      <h1>Jahresplanung</h1>
-      <div class="sub">
-        Auf Desktop siehst du den Monatskalender. Am Handy gibt’s eine Agenda-Liste (viel nicer).
-        Neue Termine erscheinen: Desktop links, Mobile als Panel von unten.
-      </div>
+<main>
 
-      <div class="row" style="padding-top:10px; justify-content:space-between;">
-        <div class="row">
-          <div class="badge"><span class="dot"></span> Live</div>
-          <span id="whoami" class="muted"></span>
-        </div>
-        <div class="row">
-          <button id="logoutBtn" class="secondary hidden">Logout</button>
-        </div>
-      </div>
+<h1>Kalender</h1>
 
-      <div class="row" style="margin-top:12px;">
-        <div class="tabs">
-          <button id="tabHome" class="tab active">Home</button>
-          <button id="tabNew" class="tab">Neuer Termin</button>
-          <button id="tabMembers" class="tab">Mitglieder</button>
-        </div>
-      </div>
-    </header>
+<div class="tabs">
+  <button id="tabCal" class="active">Kalender</button>
+  <button id="tabNew">Termin</button>
+  <button id="tabMembers">Mitglieder</button>
+</div>
 
-    <!-- LOGIN -->
-    <section id="loginSection" class="box grid">
-      <h2>Login</h2>
-      <div class="two">
-        <label class="grid">
-          <span class="muted">Email</span>
-          <input id="emailInput" type="email" placeholder="gruppen@login.de" autocomplete="username" />
-        </label>
-        <label class="grid">
-          <span class="muted">Passwort</span>
-          <input id="pwInput" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </label>
-      </div>
-      <div class="row">
-        <button id="loginBtn">Einloggen</button>
-        <span id="authStatus" class="muted"></span>
-      </div>
-    </section>
-
-    <!-- APP -->
-    <section id="appSection" class="grid hidden">
-
-      <!-- HOME -->
-      <section id="pageHome" class="box grid">
-        <div class="calHead">
-          <div class="calTitle" id="calTitle">Monat</div>
-          <div class="calNav">
-            <button class="calBtn" id="prevMonth">←</button>
-            <button class="calBtn" id="todayBtn">Heute</button>
-            <button class="calBtn" id="nextMonth">→</button>
-          </div>
-        </div>
-
-        <div class="weekdayRow">
-          <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
-        </div>
-
-        <div id="calendarGrid" class="calendarGrid"></div>
-
-        <!-- Mobile agenda -->
-        <div id="mobileAgenda" class="grid"></div>
-
-        <div id="homeStatus" class="muted"></div>
-      </section>
-
-      <!-- NEW EVENT -->
-      <section id="pageNew" class="box grid hidden">
-        <h2>Termin eintragen</h2>
-
-        <div class="two">
-          <label class="grid">
-            <span class="muted">Titel</span>
-            <input id="titleInput" placeholder="z.B. Brunch / Wandern / Städtetrip" />
-          </label>
-          <label class="grid">
-            <span class="muted">Organisiert von</span>
-            <input id="organizerInput" placeholder="Name / Team" />
-          </label>
-        </div>
-
-        <div class="two">
-          <label class="grid">
-            <span class="muted">Startdatum</span>
-            <input id="startInput" type="date" />
-          </label>
-          <label class="grid">
-            <span class="muted">Anzahl Tage</span>
-            <input id="daysInput" type="number" min="1" value="1" />
-          </label>
-        </div>
-
-        <div class="two">
-          <label class="grid">
-            <span class="muted">Budget (optional)</span>
-            <input id="budgetInput" type="number" min="0" step="1" placeholder="z.B. 50" />
-          </label>
-          <label class="grid">
-            <span class="muted">Typ</span>
-            <select id="typeInput">
-              <option value="day">Tag</option>
-              <option value="weekend">Wochenende</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="grid">
-          <span class="muted">Beschreibung</span>
-          <textarea id="descInput" style="min-height:110px;" placeholder="Was machen wir? Wo? Was muss man mitbringen?"></textarea>
-        </label>
-
-        <div class="row">
-          <button id="saveEventBtn">Speichern</button>
-          <button id="goHomeBtn" class="secondary">Zurück</button>
-          <span id="saveStatus" class="muted"></span>
-        </div>
-      </section>
-
-      <!-- MEMBERS -->
-      <section id="pageMembers" class="box grid hidden">
-        <h2>Mitglieder</h2>
-
-        <div class="row">
-          <input id="memberNameInput" placeholder="Name hinzufügen" style="flex:1; min-width:220px;" />
-          <button id="addMemberBtn">Hinzufügen</button>
-          <span id="membersStatus" class="muted"></span>
-        </div>
-
-        <div id="membersList" class="row"></div>
-
-        <div class="muted" style="font-size:13px;">
-          Diese Namen werden bei jedem Termin für “Dabei / Vielleicht / Nein” angezeigt.
-        </div>
-      </section>
-
-    </section>
-  </main>
-
-  <!-- MODAL -->
-  <div id="modalBackdrop" class="hidden" style="
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:flex; align-items:flex-start; justify-content:center;
-    padding:16px; z-index:9999;">
-    <div id="modal" style="
-      width:min(920px, 100%);
-      margin-top:16px;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:18px;
-      background:rgba(15,18,26,.92);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.45);
-      overflow:hidden;">
-      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.12);">
-        <div id="modalTitle" style="font-weight:900; letter-spacing:-.01em;"></div>
-        <button id="closeModalBtn" class="secondary">Schließen</button>
-      </div>
-      <div id="modalBody" style="padding:16px;"></div>
-    </div>
+<!-- KALENDER -->
+<section id="pageCal" class="box">
+  <div class="calendar-head">
+    <button id="prev">←</button>
+    <strong id="monthLabel"></strong>
+    <button id="next">→</button>
   </div>
-
-  <!-- Mobile notify sheet -->
-  <div id="mobileNotify" class="hidden" style="
-    position:fixed;
-    left:0; right:0; bottom:0;
-    max-height:75vh;
-    background:rgba(15,18,26,.96);
-    backdrop-filter:blur(12px);
-    border-top-left-radius:20px;
-    border-top-right-radius:20px;
-    padding:16px;
-    z-index:99999;
-    overflow:auto;
-    border-top:1px solid rgba(255,255,255,.12);
-    box-shadow: 0 -20px 60px rgba(0,0,0,.45);
-  "></div>
-
-  <script type="module">
-    // ====== SET THESE TWO ======
-    const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
-
-    const AUTH_URL = `${SUPABASE_URL}/auth/v1`;
-    const LS_KEY = "sb_session_calendar_mobile_v1";
-    let session = null;
-
-    function saveSession(s){ session = s; localStorage.setItem(LS_KEY, JSON.stringify(s)); }
-    function loadSession(){ try{ const raw = localStorage.getItem(LS_KEY); if(raw) session = JSON.parse(raw); }catch{} }
-    function clearSession(){ session=null; localStorage.removeItem(LS_KEY); }
-
-    function escapeHtml(s){
-      return (s ?? "").toString().replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
-    // UI refs
-    const loginSection = document.getElementById("loginSection");
-    const appSection = document.getElementById("appSection");
-    const emailInput = document.getElementById("emailInput");
-    const pwInput = document.getElementById("pwInput");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const authStatus = document.getElementById("authStatus");
-    const whoami = document.getElementById("whoami");
-
-    const tabHome = document.getElementById("tabHome");
-    const tabNew = document.getElementById("tabNew");
-    const tabMembers = document.getElementById("tabMembers");
-    const pageHome = document.getElementById("pageHome");
-    const pageNew = document.getElementById("pageNew");
-    const pageMembers = document.getElementById("pageMembers");
-
-    const calTitle = document.getElementById("calTitle");
-    const calendarGrid = document.getElementById("calendarGrid");
-    const homeStatus = document.getElementById("homeStatus");
-    const prevMonth = document.getElementById("prevMonth");
-    const nextMonth = document.getElementById("nextMonth");
-    const todayBtn = document.getElementById("todayBtn");
-
-    const mobileAgenda = document.getElementById("mobileAgenda");
-
-    const titleInput = document.getElementById("titleInput");
-    const organizerInput = document.getElementById("organizerInput");
-    const startInput = document.getElementById("startInput");
-    const daysInput = document.getElementById("daysInput");
-    const budgetInput = document.getElementById("budgetInput");
-    const typeInput = document.getElementById("typeInput");
-    const descInput = document.getElementById("descInput");
-    const saveEventBtn = document.getElementById("saveEventBtn");
-    const goHomeBtn = document.getElementById("goHomeBtn");
-    const saveStatus = document.getElementById("saveStatus");
-
-    const memberNameInput = document.getElementById("memberNameInput");
-    const addMemberBtn = document.getElementById("addMemberBtn");
-    const membersStatus = document.getElementById("membersStatus");
-    const membersList = document.getElementById("membersList");
-
-    const modalBackdrop = document.getElementById("modalBackdrop");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalBody = document.getElementById("modalBody");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-
-    const notifyDock = document.getElementById("notifyDock");
-    const mobileNotify = document.getElementById("mobileNotify");
-
-    function isMobile(){ return window.matchMedia("(max-width: 900px)").matches; }
-
-    function setAuthed(isAuthed, email=""){
-      loginSection.classList.toggle("hidden", isAuthed);
-      appSection.classList.toggle("hidden", !isAuthed);
-      logoutBtn.classList.toggle("hidden", !isAuthed);
-      whoami.textContent = isAuthed && email ? `Eingeloggt als: ${email}` : "";
-      authStatus.textContent = isAuthed ? "" : "Bitte einloggen";
-    }
-
-    function setPage(which){
-      const isHome = which === "home";
-      const isNew = which === "new";
-      const isMembers = which === "members";
-
-      tabHome.classList.toggle("active", isHome);
-      tabNew.classList.toggle("active", isNew);
-      tabMembers.classList.toggle("active", isMembers);
-
-      pageHome.classList.toggle("hidden", !isHome);
-      pageNew.classList.toggle("hidden", !isNew);
-      pageMembers.classList.toggle("hidden", !isMembers);
-    }
-
-    // Modal
-    function openModal(title, html){
-      modalTitle.textContent = title;
-      modalBody.innerHTML = html;
-      modalBackdrop.classList.remove("hidden");
-    }
-    function closeModal(){
-      modalBackdrop.classList.add("hidden");
-      modalBody.innerHTML = "";
-    }
-    closeModalBtn.addEventListener("click", closeModal);
-    modalBackdrop.addEventListener("click", (e) => { if(e.target === modalBackdrop) closeModal(); });
-    window.addEventListener("keydown", (e) => { if(e.key === "Escape" && !modalBackdrop.classList.contains("hidden")) closeModal(); });
-
-    // Auth
-    async function signInWithPassword(email, password){
-      const r = await fetch(`${AUTH_URL}/token?grant_type=password`, {
-        method:"POST",
-        headers:{ "apikey": SUPABASE_ANON_KEY, "Content-Type":"application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const txt = await r.text();
-      if(!r.ok) throw new Error(txt);
-      const data = JSON.parse(txt);
-      const now = Math.floor(Date.now()/1000);
-      saveSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: now + data.expires_in,
-        token_type: data.token_type,
-      });
-    }
-
-    async function refreshIfNeeded(){
-      if(!session?.access_token || !session?.refresh_token || !session?.expires_at) return;
-      const now = Math.floor(Date.now()/1000);
-      if(session.expires_at - now > 60) return;
-
-      const r = await fetch(`${AUTH_URL}/token?grant_type=refresh_token`, {
-        method:"POST",
-        headers:{ "apikey": SUPABASE_ANON_KEY, "Content-Type":"application/json" },
-        body: JSON.stringify({ refresh_token: session.refresh_token })
-      });
-      const txt = await r.text();
-      if(!r.ok) throw new Error(txt);
-      const data = JSON.parse(txt);
-      saveSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        expires_at: now + data.expires_in,
-        token_type: data.token_type,
-      });
-    }
-
-    async function fetchUserEmail(){
-      if(!session?.access_token) return "";
-      const r = await fetch(`${AUTH_URL}/user`, {
-        headers:{ "apikey": SUPABASE_ANON_KEY, "Authorization":"Bearer " + session.access_token }
-      });
-      if(!r.ok) return "";
-      const u = await r.json();
-      return u?.email || "";
-    }
-
-    // Supabase REST
-    const headers = () => ({
-      "apikey": SUPABASE_ANON_KEY,
-      "Authorization": "Bearer " + (session?.access_token || ""),
-      "Content-Type":"application/json",
-    });
-
-    function qs(obj){
-      const s = new URLSearchParams();
-      for(const [k,v] of Object.entries(obj)) s.set(k,v);
-      return s.toString();
-    }
-
-    async function sbSelect(table, queryObj){
-      const url = `${SUPABASE_URL}/rest/v1/${table}?${qs(queryObj)}`;
-      const r = await fetch(url, { headers: headers() });
-      const txt = await r.text();
-      if(!r.ok) throw new Error(txt);
-      return JSON.parse(txt);
-    }
-
-    async function sbInsert(table, rows){
-      const url = `${SUPABASE_URL}/rest/v1/${table}`;
-      const r = await fetch(url, { method:"POST", headers: headers(), body: JSON.stringify(rows) });
-      const txt = await r.text();
-      if(!r.ok) throw new Error(txt);
-      return true;
-    }
-
-    async function sbUpsert(table, rows, onConflictCols){
-      const url = `${SUPABASE_URL}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflictCols)}`;
-      const r = await fetch(url, {
-        method:"POST",
-        headers: { ...headers(), "Prefer":"resolution=merge-duplicates" },
-        body: JSON.stringify(rows)
-      });
-      const txt = await r.text();
-      if(!r.ok) throw new Error(txt);
-      return true;
-    }
-
-    // Data caches
-    let allEvents = [];
-    let members = [];
-
-    async function loadMembers(){
-      membersStatus.textContent = "Lade…";
-      try{
-        members = await sbSelect("participants", { select:"*", order:"created_at.asc" });
-        membersList.innerHTML = members.map(m => `<span class="pill">${escapeHtml(m.name)}</span>`).join("");
-        membersStatus.textContent = members.length ? "" : "Noch keine Mitglieder.";
-      }catch(e){
-        membersStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
-      }
-    }
-
-    addMemberBtn.addEventListener("click", async () => {
-      const n = memberNameInput.value.trim();
-      if(!n) return;
-      addMemberBtn.disabled = true;
-      membersStatus.textContent = "Speichere…";
-      try{
-        await sbInsert("participants", [{ name: n }]);
-        memberNameInput.value = "";
-        await loadMembers();
-      }catch(e){
-        membersStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
-      }finally{
-        addMemberBtn.disabled = false;
-      }
-    });
-
-    // ===== Notifications for new events =====
-    const SEEN_KEY = "seen_events_after_v1"; // ISO timestamp
-    const WHO_KEY = "my_member_name_v1";     // your name for quick RSVP
-
-    function getSeenTs(){ return localStorage.getItem(SEEN_KEY) || "1970-01-01T00:00:00.000Z"; }
-    function setSeenTsNow(){ localStorage.setItem(SEEN_KEY, new Date().toISOString()); }
-    function getMyName(){ return localStorage.getItem(WHO_KEY) || ""; }
-    function setMyName(n){ localStorage.setItem(WHO_KEY, n); }
-
-    async function ensureMyName(){
-      let n = getMyName();
-      if(n) return n;
-
-      if(!members.length) await loadMembers();
-      const hint = members.length ? members.map(m => m.name).join(", ") : "";
-      n = prompt("Welcher Name bist du? (für Zusagen)\n" + (hint ? "Mitglieder: " + hint : "")) || "";
-      n = n.trim();
-      if(!n) return "";
-      setMyName(n);
-      return n;
-    }
-
-    function renderNotifyCard(ev){
-      const title = ev.title || "Termin";
-      const range = ev.end_date && ev.end_date !== ev.date ? `${ev.date} – ${ev.end_date}` : ev.date;
-      const org = ev.organizer ? ` · ${ev.organizer}` : "";
-      const budget = ev.budget != null ? ` · Budget: ${ev.budget}` : "";
-
-      return `
-        <div class="box" style="padding:12px; border-radius:16px;">
-          <div style="font-weight:900;">Neuer Termin</div>
-          <div style="margin-top:6px; font-weight:900;">${escapeHtml(title)}</div>
-          <div class="muted" style="margin-top:6px; font-size:13px;">${escapeHtml(range)}${escapeHtml(org)}${escapeHtml(budget)}</div>
-          ${ev.description ? `<div class="muted" style="margin-top:8px; font-size:13px; line-height:1.45;">${escapeHtml(ev.description)}</div>` : ""}
-          <div class="row" style="margin-top:10px; gap:8px;">
-            <button class="secondary" data-nrsvp="yes" data-evid="${escapeHtml(ev.id)}">Dabei</button>
-            <button class="secondary" data-nrsvp="maybe" data-evid="${escapeHtml(ev.id)}">Vielleicht</button>
-            <button class="secondary" data-nrsvp="no" data-evid="${escapeHtml(ev.id)}">Nein</button>
-            <button class="secondary" data-open="${escapeHtml(ev.id)}">Details</button>
-          </div>
-        </div>
-      `;
-    }
-
-    function wireNotifyContainer(container, newEvents){
-      container.querySelectorAll("[data-open]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const id = btn.getAttribute("data-open");
-          const ev = allEvents.find(e => e.id === id) || newEvents.find(e => e.id === id);
-          if(ev) await openEventOverlay(ev);
-        });
-      });
-
-      container.querySelectorAll("[data-nrsvp]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const status = btn.getAttribute("data-nrsvp");
-          const eventId = btn.getAttribute("data-evid");
-          if(!status || !eventId) return;
-
-          const myName = await ensureMyName();
-          if(!myName) return alert("Ohne Name kann ich dich nicht eintragen.");
-
-          try{
-            await sbUpsert("rsvps", [{
-              event_id: eventId,
-              member_name: myName,
-              status,
-              updated_at: new Date().toISOString()
-            }], "event_id,member_name");
-
-            btn.closest(".box")?.remove();
-
-            // If empty -> hide + set seen timestamp
-            if(!container.querySelector(".box")){
-              if(container === mobileNotify) mobileNotify.classList.add("hidden");
-              container.innerHTML = "";
-              setSeenTsNow();
-            }
-          }catch(e){
-            alert(e.message);
-          }
-        });
-      });
-    }
-
-    async function showNewEventsUI(){
-      const seenAfter = getSeenTs();
-
-      // requires created_at column
-      const newEvents = await sbSelect("events", {
-        select: "*",
-        order: "created_at.asc",
-        created_at: "gt." + seenAfter
-      });
-
-      // Desktop dock
-      if(!isMobile()){
-        if(!newEvents.length){
-          notifyDock.innerHTML = "";
-        } else {
-          notifyDock.innerHTML = newEvents.map(renderNotifyCard).join("");
-          wireNotifyContainer(notifyDock, newEvents);
-        }
-      }
-
-      // Mobile bottom sheet
-      if(isMobile()){
-        if(!newEvents.length){
-          mobileNotify.classList.add("hidden");
-          mobileNotify.innerHTML = "";
-          return;
-        }
-
-        mobileNotify.innerHTML = `
-          <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px;">
-            <div style="font-weight:900;">Neue Termine</div>
-            <button class="secondary" id="closeMobileNotify">Später</button>
-          </div>
-          <div class="muted" style="font-size:13px; margin-bottom:10px;">
-            Bitte kurz abstimmen – danach verschwindet die Meldung.
-          </div>
-          ${newEvents.map(renderNotifyCard).join("")}
-        `;
-        mobileNotify.classList.remove("hidden");
-        document.getElementById("closeMobileNotify").onclick = () => mobileNotify.classList.add("hidden");
-
-        wireNotifyContainer(mobileNotify, newEvents);
-      }
-    }
-
-    // ===== Calendar helpers =====
-    let view = new Date(); view.setDate(1);
-    const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-
-    function isoDate(d){
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const day = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${day}`;
-    }
-    function addDays(dateObj, n){ const d = new Date(dateObj); d.setDate(d.getDate()+n); return d; }
-
-    function buildEventIndex(events){
-      const idx = new Map();
-      for(const ev of events){
-        const start = ev.date;
-        const end = ev.end_date || ev.date;
-        let cur = new Date(start + "T00:00:00");
-        const last = new Date(end + "T00:00:00");
-        while(cur <= last){
-          const key = isoDate(cur);
-          if(!idx.has(key)) idx.set(key, []);
-          idx.get(key).push({
-            id: ev.id,
-            title: ev.title || "Termin",
-            organizer: ev.organizer || ""
-          });
-          cur = addDays(cur, 1);
-        }
-      }
-      return idx;
-    }
-
-    async function loadEventsForCalendar(){
-      homeStatus.textContent = "Lade Termine…";
-      try{
-        allEvents = await sbSelect("events", { select:"*", order:"date.asc" });
-        homeStatus.textContent = "";
-        renderCalendar();
-        renderMobileAgenda();
-      }catch(e){
-        homeStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
-      }
-    }
-
-    function renderCalendar(){
-      const y = view.getFullYear();
-      const m = view.getMonth();
-      calTitle.textContent = `${monthNames[m]} ${y}`;
-
-      const first = new Date(y, m, 1);
-      const firstDowMon0 = (first.getDay() + 6) % 7; // Mon=0
-      const daysInMonth = new Date(y, m+1, 0).getDate();
-      const prevDays = firstDowMon0;
-      const prevMonthLast = new Date(y, m, 0).getDate();
-
-      const idx = buildEventIndex(allEvents);
-
-      const cells = [];
-      for(let i=0;i<42;i++){
-        let cellDate, dim=false;
-
-        if(i < prevDays){
-          const dayNum = prevMonthLast - prevDays + 1 + i;
-          cellDate = new Date(y, m-1, dayNum);
-          dim=true;
-        } else if(i >= prevDays + daysInMonth){
-          const dayNum = i - (prevDays + daysInMonth) + 1;
-          cellDate = new Date(y, m+1, dayNum);
-          dim=true;
-        } else {
-          const dayNum = i - prevDays + 1;
-          cellDate = new Date(y, m, dayNum);
-        }
-
-        const key = isoDate(cellDate);
-        const items = idx.get(key) || [];
-        const chips = items.slice(0,3).map(c =>
-          `<div class="chip">${escapeHtml(c.title)}${c.organizer ? " · " + escapeHtml(c.organizer) : ""}</div>`
-        ).join("");
-        const moreCount = Math.max(0, items.length - 3);
-        const more = moreCount ? `<div class="chip">+${moreCount} mehr</div>` : "";
-
-        cells.push(`
-          <div class="dayCell ${dim ? "dim" : ""}" data-date="${key}">
-            <div class="dayNum">${cellDate.getDate()}</div>
-            <div class="chips">${chips}${more}</div>
-          </div>
-        `);
-      }
-
-      calendarGrid.innerHTML = cells.join("");
-
-      const handler = async (cell) => {
-        const dateStr = cell.getAttribute("data-date");
-        if(dateStr) await openDayOverlay(dateStr);
-      };
-
-      calendarGrid.querySelectorAll(".dayCell").forEach(cell => {
-        cell.addEventListener("click", () => handler(cell));
-        cell.addEventListener("dblclick", () => handler(cell));
-      });
-    }
-
-    function renderMobileAgenda(){
-      if(!mobileAgenda) return;
-
-      // On desktop we can keep it empty
-      if(!window.matchMedia("(max-width: 700px)").matches){
-        mobileAgenda.innerHTML = "";
-        return;
-      }
-
-      const today = isoDate(new Date());
-      const upcoming = allEvents
-        .filter(ev => (ev.end_date || ev.date) >= today)
-        .sort((a,b) => a.date.localeCompare(b.date))
-        .slice(0, 25);
-
-      if(!upcoming.length){
-        mobileAgenda.innerHTML = `<div class="muted">Keine kommenden Termine.</div>`;
-        return;
-      }
-
-      mobileAgenda.innerHTML = upcoming.map(ev => `
-        <div class="card" style="cursor:pointer;">
-          <div style="font-weight:900;">${escapeHtml(ev.title || "Termin")}</div>
-          <div class="muted" style="margin-top:4px; font-size:13px;">
-            ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
-            ${ev.organizer ? " · " + escapeHtml(ev.organizer) : ""}
-          </div>
-          ${ev.description ? `<div class="muted" style="margin-top:8px; font-size:13px; line-height:1.4;">${escapeHtml(ev.description)}</div>` : ""}
-        </div>
-      `).join("");
-
-      mobileAgenda.querySelectorAll(".card").forEach((el, i) => {
-        el.addEventListener("click", () => openEventOverlay(upcoming[i]));
-      });
-    }
-
-    function statusLabel(s){
-      if(s === "yes") return "Dabei";
-      if(s === "maybe") return "Vielleicht";
-      return "Nein";
-    }
-
-    async function loadRsvps(eventId){
-      return await sbSelect("rsvps", { select:"*", event_id: "eq." + eventId });
-    }
-
-    async function openDayOverlay(dateStr){
-      const todays = allEvents.filter(ev => {
-        const start = ev.date;
-        const end = ev.end_date || ev.date;
-        return dateStr >= start && dateStr <= end;
-      });
-
-      if(!todays.length){
-        openModal(dateStr, `<div class="muted">Keine Termine an diesem Tag.</div>`);
-        return;
-      }
-
-      const list = todays.map(ev => `
-        <div class="card" style="margin-bottom:10px; cursor:pointer;" data-ev="${escapeHtml(ev.id)}">
-          <div style="font-weight:900;">${escapeHtml(ev.title || "Termin")}</div>
-          <div class="muted" style="margin-top:4px;">
-            ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
-            ${ev.organizer ? " · " + escapeHtml(ev.organizer) : ""}
-            ${ev.budget != null ? " · Budget: " + escapeHtml(ev.budget) : ""}
-          </div>
-        </div>
-      `).join("");
-
-      openModal(dateStr, `<div>${list}</div><div class="muted" style="font-size:13px;">Tippe einen Termin an für Details & Zusagen.</div>`);
-
-      modalBody.querySelectorAll("[data-ev]").forEach(el => {
-        el.addEventListener("click", async () => {
-          const id = el.getAttribute("data-ev");
-          const ev = allEvents.find(x => x.id === id);
-          if(ev) await openEventOverlay(ev);
-        });
-      });
-    }
-
-    // ===== ICS (Add to calendar) =====
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function icsDateUTC(yyyyMmDd){ return yyyyMmDd.replaceAll("-", ""); }
-    function icsEscape(text){
-      return (text || "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("\n", "\\n")
-        .replaceAll(",", "\\,")
-        .replaceAll(";", "\\;");
-    }
-
-    function downloadIcsForEvent(ev){
-      const title = ev.title || "Termin";
-      const start = ev.date;
-      const endInclusive = ev.end_date || ev.date;
-
-      const endExclusive = isoDate(addDays(new Date(endInclusive + "T00:00:00"), 1));
-      const dtStart = icsDateUTC(start);
-      const dtEnd = icsDateUTC(endExclusive);
-
-      const descParts = [];
-      if (ev.organizer) descParts.push(`Organisiert von: ${ev.organizer}`);
-      if (ev.budget != null) descParts.push(`Budget: ${ev.budget}`);
-      if (ev.description) descParts.push(ev.description);
-      const description = descParts.join("\n");
-
-      const uid = `${ev.id}@jahresplanung`;
-      const now = new Date();
-      const dtStamp =
-        now.getUTCFullYear() +
-        pad2(now.getUTCMonth()+1) +
-        pad2(now.getUTCDate()) + "T" +
-        pad2(now.getUTCHours()) +
-        pad2(now.getUTCMinutes()) +
-        pad2(now.getUTCSeconds()) + "Z";
-
-      const ics =
-`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Jahresplanung//DE
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-BEGIN:VEVENT
-UID:${icsEscape(uid)}
-DTSTAMP:${dtStamp}
-SUMMARY:${icsEscape(title)}
-DTSTART;VALUE=DATE:${dtStart}
-DTEND;VALUE=DATE:${dtEnd}
-DESCRIPTION:${icsEscape(description)}
-END:VEVENT
-END:VCALENDAR`;
-
-      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const safeName = title.replace(/[^a-z0-9\-_]+/gi, "_").slice(0, 40) || "termin";
-      a.download = `${safeName}.ics`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function openEventOverlay(ev){
-      if(!members.length) await loadMembers();
-
-      const rsvps = await loadRsvps(ev.id);
-      const rsvpMap = new Map(rsvps.map(r => [r.member_name, r.status]));
-
-      const counts = { yes:0, maybe:0, no:0 };
-      rsvps.forEach(r => { if(counts[r.status] != null) counts[r.status]++; });
-
-      const header = `
-        <div class="muted" style="margin-bottom:10px;">
-          ${escapeHtml(ev.date)}${ev.end_date && ev.end_date !== ev.date ? " – " + escapeHtml(ev.end_date) : ""}
-          ${ev.organizer ? " · organisiert von " + escapeHtml(ev.organizer) : ""}
-          ${ev.budget != null ? " · Budget: " + escapeHtml(ev.budget) : ""}
-        </div>
-
-        <div class="row" style="margin-bottom:12px; gap:8px;">
-          <button class="secondary" id="icsBtn">In Kalender</button>
-          <span class="pill">Dabei: ${counts.yes}</span>
-          <span class="pill">Vielleicht: ${counts.maybe}</span>
-          <span class="pill">Nein: ${counts.no}</span>
-        </div>
-
-        ${ev.description ? `<div style="margin-bottom:14px; line-height:1.5;">${escapeHtml(ev.description)}</div>`
-                        : `<div class="muted" style="margin-bottom:14px;">Keine Beschreibung.</div>`}
-      `;
-
-      const list = members.map(m => {
-        const name = m.name;
-        const s = rsvpMap.get(name);
-        const current = s ? statusLabel(s) : "Offen";
-        return `
-          <div class="card" style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px;">
-            <div style="min-width:140px;">
-              <div style="font-weight:900;">${escapeHtml(name)}</div>
-              <div class="muted" style="font-size:13px;">Status: ${escapeHtml(current)}</div>
-            </div>
-            <div class="row" style="gap:8px;">
-              <button class="secondary" data-rsvp="yes" data-name="${escapeHtml(name)}">Dabei</button>
-              <button class="secondary" data-rsvp="maybe" data-name="${escapeHtml(name)}">Vielleicht</button>
-              <button class="secondary" data-rsvp="no" data-name="${escapeHtml(name)}">Nein</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      openModal(ev.title || "Termin", header + `<h3 style="margin:10px 0 8px 0; font-size:14px;">Zusagen</h3>` + list);
-
-      document.getElementById("icsBtn")?.addEventListener("click", () => downloadIcsForEvent(ev));
-
-      modalBody.querySelectorAll("[data-rsvp]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const status = btn.getAttribute("data-rsvp");
-          const name = btn.getAttribute("data-name");
-          try{
-            await sbUpsert("rsvps", [{
-              event_id: ev.id,
-              member_name: name,
-              status,
-              updated_at: new Date().toISOString()
-            }], "event_id,member_name");
-
-            await openEventOverlay(ev);
-          }catch(e){
-            alert(e.message);
-          }
-        });
-      });
-    }
-
-    // Create event
-    function clampInt(n, fallback){
-      const x = parseInt(n, 10);
-      return Number.isFinite(x) && x > 0 ? x : fallback;
-    }
-
-    saveEventBtn.addEventListener("click", async () => {
-      const title = titleInput.value.trim() || null;
-      const organizer = organizerInput.value.trim() || null;
-      const start = startInput.value;
-      if(!start) return alert("Bitte Startdatum wählen.");
-
-      const days = clampInt(daysInput.value, 1);
-      const end = isoDate(addDays(new Date(start+"T00:00:00"), days-1));
-
-      const budgetVal = budgetInput.value.trim();
-      const budget = budgetVal ? Number(budgetVal) : null;
-      const description = descInput.value.trim() || null;
-      const type = typeInput.value;
-
-      saveEventBtn.disabled = true;
-      saveStatus.textContent = "Speichere…";
-      try{
-        await sbInsert("events", [{
-          date: start,
-          end_date: end,
-          title,
-          organizer,
-          budget,
-          description,
-          type
-        }]);
-
-        titleInput.value = "";
-        organizerInput.value = "";
-        startInput.value = "";
-        daysInput.value = "1";
-        budgetInput.value = "";
-        descInput.value = "";
-        typeInput.value = "day";
-
-        saveStatus.textContent = "";
-        setPage("home");
-        await loadEventsForCalendar();
-        await showNewEventsUI();
-      }catch(e){
-        saveStatus.innerHTML = `<span class="danger">Fehler: ${escapeHtml(e.message)}</span>`;
-      }finally{
-        saveEventBtn.disabled = false;
-      }
-    });
-
-    // Tabs + nav
-    tabHome.addEventListener("click", () => setPage("home"));
-    tabNew.addEventListener("click", () => setPage("new"));
-    tabMembers.addEventListener("click", async () => { setPage("members"); await loadMembers(); });
-    goHomeBtn.addEventListener("click", () => setPage("home"));
-
-    prevMonth.addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth()-1, 1); renderCalendar(); });
-    nextMonth.addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth()+1, 1); renderCalendar(); });
-    todayBtn.addEventListener("click", () => { const t = new Date(); view = new Date(t.getFullYear(), t.getMonth(), 1); renderCalendar(); });
-
-    // Login handlers
-    loginBtn.addEventListener("click", async () => {
-      const email = emailInput.value.trim();
-      const pw = pwInput.value;
-      if(!email || !pw) return;
-
-      loginBtn.disabled = true;
-      authStatus.textContent = "Login…";
-
-      try{
-        await signInWithPassword(email, pw);
-        await refreshIfNeeded();
-        const e = await fetchUserEmail();
-        setAuthed(true, e || email);
-
-        setPage("home");
-        await loadMembers();
-        await loadEventsForCalendar();
-        await showNewEventsUI();
-
-        authStatus.textContent = "";
-      }catch(err){
-        authStatus.textContent = "Login fehlgeschlagen";
-        alert(err.message);
-        clearSession();
-        setAuthed(false);
-      }finally{
-        loginBtn.disabled = false;
-      }
-    });
-
-    logoutBtn.addEventListener("click", () => {
-      clearSession();
-      setAuthed(false);
-      setPage("home");
-      notifyDock.innerHTML = "";
-      mobileNotify.classList.add("hidden");
-      mobileNotify.innerHTML = "";
-    });
-
-    // Init
-    (async () => {
-      loadSession();
-      if(!session?.access_token){
-        setAuthed(false);
-        setPage("home");
-        return;
-      }
-
-      try{
-        await refreshIfNeeded();
-        const e = await fetchUserEmail();
-        setAuthed(true, e);
-        setPage("home");
-        await loadMembers();
-        await loadEventsForCalendar();
-        await showNewEventsUI();
-      }catch{
-        clearSession();
-        setAuthed(false);
-      }
-    })();
-
-    // Re-render agenda on resize (nice for rotate)
-    window.addEventListener("resize", () => {
-      renderMobileAgenda();
-      // update notify UI if breakpoint changed
-      // (safe try/catch because it calls Supabase only on login flows; here we just keep display)
-    });
-  </script>
+  <div class="calendar-grid" id="calendar"></div>
+</section>
+
+<!-- NEUER TERMIN -->
+<section id="pageNew" class="box hidden">
+  <h3>Neuer Termin</h3>
+  <input id="tTitle" placeholder="Titel">
+  <input id="tOrg" placeholder="Organisiert von">
+  <input id="tDate" type="date">
+  <input id="tDays" type="number" min="1" value="1">
+  <input id="tBudget" type="number" placeholder="Budget">
+  <textarea id="tDesc" placeholder="Beschreibung"></textarea>
+  <button id="saveEvent">Speichern</button>
+</section>
+
+<!-- MITGLIEDER -->
+<section id="pageMembers" class="box hidden">
+  <h3>Mitglieder</h3>
+  <input id="memberName" placeholder="Name">
+  <button id="addMember">Hinzufügen</button>
+  <div id="memberList"></div>
+</section>
+
+</main>
+
+<!-- MODAL -->
+<div id="modalBg" class="modal-bg hidden">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script type="module">
+const SUPABASE_URL = "https://upmqtqspisdlgsnkpaam.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXF0cXNwaXNkbGdzbmtwYWFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDk3NjIsImV4cCI6MjA4MTU4NTc2Mn0.FwGThG6nyM8K8GhcCmtWhoYbqqXJGkBoc8rOHG-6k00";
+
+const headers = () => ({
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: "Bearer " + SUPABASE_ANON_KEY,
+  "Content-Type":"application/json"
+});
+
+let events=[], rsvps=[], members=[];
+let myName = localStorage.getItem("myName")||"";
+
+const qs=o=>new URLSearchParams(o).toString();
+const sb = async (t,q)=>fetch(`${SUPABASE_URL}/rest/v1/${t}?${qs(q)}`,{headers:headers()}).then(r=>r.json());
+const sbPost = async (t,d)=>fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:"POST",headers:headers(),body:JSON.stringify(d)});
+
+const cal=document.getElementById("calendar");
+const monthLabel=document.getElementById("monthLabel");
+let view=new Date(); view.setDate(1);
+
+function iso(d){return d.toISOString().slice(0,10)}
+
+async function loadAll(){
+  events=await sb("events",{select:"*"});
+  rsvps=await sb("rsvps",{select:"*"});
+  members=await sb("participants",{select:"*"});
+  render();
+}
+
+function render(){
+  cal.innerHTML="";
+  const y=view.getFullYear(),m=view.getMonth();
+  monthLabel.textContent=view.toLocaleString("de",{month:"long",year:"numeric"});
+  const first=new Date(y,m,1);
+  const start=(first.getDay()+6)%7;
+  for(let i=0;i<42;i++){
+    const d=new Date(y,m,1-start+i);
+    const key=iso(d);
+    const ev=events.find(e=>key>=e.date&&key<=(e.end_date||e.date));
+    const joined=!!rsvps.find(r=>r.member_name===myName&&r.status==="yes"&&r.event_id===ev?.id);
+    const el=document.createElement("div");
+    el.className="day"+(d.getMonth()!=m?" dim":"")+(ev?" hasEvent":"")+(joined?" joined":"");
+    el.innerHTML=`<span>${d.getDate()}</span>`;
+    el.onclick=()=>ev&&openEvent(ev);
+    cal.appendChild(el);
+  }
+}
+
+function openEvent(ev){
+  if(!myName){
+    myName=prompt("Wie ist dein Name?");
+    if(!myName)return;
+    localStorage.setItem("myName",myName);
+  }
+  const mine=rsvps.find(r=>r.event_id===ev.id&&r.member_name===myName);
+  if(!mine){
+    showModal(`
+      <h3>${ev.title}</h3>
+      <button onclick="vote('${ev.id}','yes')">Ich komme</button>
+      <button onclick="vote('${ev.id}','no')" class="secondary">Ich komme nicht</button>
+    `);
+  }else{
+    const list=rsvps.filter(r=>r.event_id===ev.id&&r.status==="yes").map(r=>r.member_name).join(", ");
+    showModal(`
+      <h3>${ev.title}</h3>
+      <p>${ev.description||""}</p>
+      <p><strong>Dabei:</strong> ${list||"–"}</p>
+      <button onclick="addToCal('${ev.id}')">In Kalender</button>
+      <button onclick="delEvent('${ev.id}')" class="secondary">Löschen</button>
+    `);
+  }
+}
+
+window.vote=async(id,status)=>{
+  await sbPost("rsvps",[{
+    event_id:id,
+    member_name:myName,
+    status
+  }]);
+  closeModal(); loadAll();
+};
+
+window.delEvent=async(id)=>{
+  if(confirm("Termin löschen?")){
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`,{method:"DELETE",headers:headers()});
+    closeModal(); loadAll();
+  }
+};
+
+function showModal(html){
+  document.getElementById("modal").innerHTML=html;
+  document.getElementById("modalBg").classList.remove("hidden");
+}
+function closeModal(){document.getElementById("modalBg").classList.add("hidden")}
+
+document.getElementById("modalBg").onclick=e=>e.target.id==="modalBg"&&closeModal();
+
+document.getElementById("prev").onclick=()=>{view.setMonth(view.getMonth()-1);render()};
+document.getElementById("next").onclick=()=>{view.setMonth(view.getMonth()+1);render()};
+
+document.getElementById("saveEvent").onclick=async()=>{
+  const d=tDate.value;
+  const end=new Date(d); end.setDate(end.getDate()+(+tDays.value-1));
+  await sbPost("events",[{
+    title:tTitle.value,
+    organizer:tOrg.value,
+    date:d,
+    end_date:iso(end),
+    budget:tBudget.value||null,
+    description:tDesc.value
+  }]);
+  loadAll();
+};
+
+document.getElementById("addMember").onclick=async()=>{
+  await sbPost("participants",[{name:memberName.value}]);
+  loadAll();
+};
+
+tabCal.onclick=()=>{pageCal.classList.remove("hidden");pageNew.classList.add("hidden");pageMembers.classList.add("hidden")}
+tabNew.onclick=()=>{pageNew.classList.remove("hidden");pageCal.classList.add("hidden");pageMembers.classList.add("hidden")}
+tabMembers.onclick=()=>{pageMembers.classList.remove("hidden");pageCal.classList.add("hidden");pageNew.classList.add("hidden")}
+
+loadAll();
+</script>
 </body>
 </html>
